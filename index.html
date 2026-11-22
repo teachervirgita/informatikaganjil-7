@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CBT Ujian Praktik Informatika Kelas VII — SMP IT Al Madinah Tanjungpinang</title>
+
+  <!-- Google Fonts: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            canvas: '#F5F4F9',
+            ink: '#18181F',
+            muted: '#6D6B7A',
+            lavender: {
+              soft: '#E2DAFA',
+              card: '#D9CEF6',
+              deep: '#7E64D6',
+            },
+            mint: {
+              soft: '#D4EFE7',
+              card: '#C5E8DD',
+              deep: '#198766',
+            },
+            skycard: {
+              soft: '#D9ECFC',
+              card: '#CBE4FA',
+              deep: '#2A76C5',
+            },
+            butter: {
+              soft: '#FEF0B2',
+              card: '#FCE794',
+              deep: '#B87B0A',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      font-family: 'Poppins', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at 12% 10%, #ECE6FB 0%, #F5F4F9 45%, #F2F1F7 100%);
+      color: #18181F;
+      overscroll-behavior-y: contain;
+    }
+
+    .exam-protected {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .blurred-exam {
+      filter: blur(14px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Pola garis miring lembut seperti grafik Progress referensi */
+    .striped-capsule {
+      background-color: #FFFFFF;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(24, 24, 31, 0.045),
+        rgba(24, 24, 31, 0.045) 5px,
+        transparent 5px,
+        transparent 11px
+      );
+    }
+
+    .sparkle-float {
+      animation: floatSparkle 3.6s ease-in-out infinite;
+    }
+    @keyframes floatSparkle {
+      0%, 100% { transform: translateY(0px) scale(1); opacity: 0.9; }
+      50% { transform: translateY(-4px) scale(1.08); opacity: 1; }
+    }
+
+    .arrow-circle-btn {
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .group:hover .arrow-circle-btn,
+    .arrow-circle-btn:hover {
+      transform: translateX(2px);
+    }
+
+    @keyframes progressLoad {
+      0% { width: 8%; }
+      55% { width: 76%; }
+      100% { width: 100%; }
+    }
+    .animate-progress {
+      animation: progressLoad 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeSlideUp 0.26s ease-out forwards;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D2CEE0; border-radius: 999px; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- ===================================================================== -->
+  <!-- 1. OVERLAY LOADING ANIMASI                                            -->
+  <!-- ===================================================================== -->
+  <div id="loadingOverlay" class="fixed inset-0 z-[100] hidden bg-ink/60 backdrop-blur-md flex items-center justify-center p-5">
+    <div class="bg-white rounded-[32px] shadow-2xl max-w-xs w-full p-7 text-center fade-in">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-lavender-soft flex items-center justify-center relative">
+        <div class="w-9 h-9 border-[3.5px] border-white border-t-ink rounded-full animate-spin"></div>
+      </div>
+      <h3 id="loadingTitle" class="text-base font-bold text-ink tracking-tight mb-1">Menyiapkan Ruang CBT...</h3>
+      <p id="loadingSubtitle" class="text-xs text-muted mb-5 leading-relaxed">Mengaktifkan pengawasan layar penuh &amp; memuat 30 soal HOTS.</p>
+      <div class="w-full bg-canvas rounded-full h-2.5 overflow-hidden p-0.5">
+        <div id="loadingBar" class="h-full bg-ink rounded-full"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. POPUP PERINGATAN PELANGGARAN CBT (PINDAH TAB / KELUAR FULLSCREEN)  -->
+  <!-- ===================================================================== -->
+  <div id="warningModal" class="fixed inset-0 z-[90] hidden bg-ink/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-[32px] shadow-2xl max-w-md w-full overflow-hidden fade-in border-2 border-rose-300">
+      <div class="bg-[#FFE4E6] px-6 py-5 flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+        </div>
+        <div>
+          <span id="warningCountBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold tracking-wide uppercase">Pelanggaran 1 dari 3</span>
+          <h3 class="font-extrabold text-base text-rose-950 leading-tight mt-1">Peringatan Keamanan CBT!</h3>
+        </div>
+      </div>
+      <div class="p-6 space-y-4">
+        <p id="warningReasonText" class="text-sm text-ink font-medium leading-relaxed">
+          Sistem mendeteksi kamu berpindah tab, membuka web/aplikasi lain, atau keluar dari layar ujian.
+        </p>
+        <div class="bg-canvas rounded-2xl p-4 text-xs space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-muted font-medium">Waktu Kejadian</span>
+            <span id="warningTimeText" class="px-2.5 py-0.5 rounded-full bg-white font-mono font-bold text-ink">--:--:--</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-muted font-medium">Sisa Toleransi</span>
+            <span id="warningRemainingText" class="font-bold text-rose-600">2 kali lagi sebelum terkunci</span>
+          </div>
+        </div>
+        <p class="text-[11px] text-muted leading-relaxed">
+          Riwayat pelanggaran otomatis tercatat pada laporan guru pengawas. Tetap berada di halaman ini sampai selesai.
+        </p>
+        <button id="btnResumeAfterWarning" type="button" class="w-full py-3.5 px-5 bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-semibold text-sm rounded-full transition shadow-sm">
+          Saya Mengerti &amp; Kembali ke Ujian
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 3. LAYAR KUNCI TOTAL (TERKUNCI BUTUH PIN PENGAWAS)                    -->
+  <!-- ===================================================================== -->
+  <div id="lockModal" class="fixed inset-0 z-[95] hidden bg-ink/90 backdrop-blur-lg flex items-center justify-center p-4">
+    <div class="bg-white rounded-[32px] shadow-2xl max-w-md w-full overflow-hidden fade-in">
+      <div class="bg-[#FFE4E6] px-6 py-6 text-center">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-600 text-white flex items-center justify-center shadow-sm">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <h3 class="font-extrabold text-lg text-rose-950 tracking-tight">Ujian Terkunci Otomatis</h3>
+        <p class="text-xs text-rose-800/90 mt-1">Batas maksimal pelanggaran CBT telah tercapai.</p>
+      </div>
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-muted text-center leading-relaxed">
+          Laporkan kepada <strong class="text-ink">Guru Pengawas</strong> untuk membuka kembali sesi dengan <strong class="text-ink">PIN Pengawas</strong>, atau kumpulkan ujian sekarang.
+        </p>
+        <div>
+          <label for="inputPinPengawas" class="block text-xs font-semibold text-ink mb-1.5 ml-1">PIN Guru Pengawas</label>
+          <input id="inputPinPengawas" type="password" inputmode="numeric" placeholder="••••••" class="w-full px-4 py-3 text-center tracking-[0.4em] font-bold text-base bg-canvas border-2 border-transparent focus:border-ink focus:bg-white rounded-2xl outline-none transition" />
+          <p id="pinErrorMsg" class="text-xs text-rose-600 font-semibold mt-1.5 text-center hidden">PIN Pengawas tidak sesuai.</p>
+        </div>
+        <div class="space-y-2.5 pt-1">
+          <button id="btnUnlockExam" type="button" class="w-full py-3.5 px-5 bg-ink hover:bg-neutral-800 text-white font-semibold text-sm rounded-full transition">
+            Buka Kunci Ujian (Guru)
+          </button>
+          <button id="btnForceSubmit" type="button" class="w-full py-3 px-4 bg-canvas hover:bg-lavender-soft/60 text-ink font-semibold text-xs rounded-full transition">
+            Kumpulkan Ujian Sekarang (Auto-Submit)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 4. POPUP KONFIRMASI PENGUMPULAN UJIAN                                 -->
+  <!-- ===================================================================== -->
+  <div id="confirmSubmitModal" class="fixed inset-0 z-[85] hidden bg-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[32px] shadow-2xl max-w-md w-full p-6 fade-in">
+      <div class="flex items-center gap-3.5 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-butter-soft text-butter-deep flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base text-ink tracking-tight">Kumpulkan Ujian Sekarang?</h3>
+          <p class="text-xs text-muted">Periksa kembali progres pengerjaanmu di bawah ini.</p>
+        </div>
+      </div>
+      <div id="submitSummaryBox" class="bg-canvas rounded-2xl p-4 text-xs space-y-2.5 mb-5">
+        <!-- Diisi dinamis oleh JS -->
+      </div>
+      <div class="flex gap-2.5">
+        <button id="btnCancelSubmit" type="button" class="flex-1 py-3 px-4 bg-canvas hover:bg-slate-200/70 text-ink font-semibold text-sm rounded-full transition">
+          Cek Lagi
+        </button>
+        <button id="btnConfirmSubmit" type="button" class="flex-1 py-3 px-4 bg-ink hover:bg-neutral-800 text-white font-semibold text-sm rounded-full transition">
+          Ya, Kumpulkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 5. HALAMAN LOGIN MURID (PASTEL ONBOARDING CARD STYLE)                 -->
+  <!-- ===================================================================== -->
+  <section id="loginScreen" class="min-h-screen flex items-center justify-center p-3 sm:p-6">
+    <div class="max-w-[460px] w-full bg-white rounded-[36px] shadow-[0_24px_60px_-20px_rgba(38,29,77,0.16)] overflow-hidden border border-white fade-in">
+
+      <!-- Area Hero Pastel Lavender -->
+      <div class="bg-[#DDD4F6] px-6 pt-6 pb-8 relative overflow-hidden">
+        <!-- Dekorasi Bintang Sparkle -->
+        <svg class="sparkle-float absolute top-6 left-7 w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+        </svg>
+        <svg class="sparkle-float absolute top-14 right-8 w-6 h-6 text-white/90" style="animation-delay:0.8s" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+        </svg>
+        <svg class="absolute bottom-14 left-10 w-3.5 h-3.5 text-[#8E76DA]/60" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+        </svg>
+        <svg class="absolute bottom-20 right-12 w-4 h-4 text-[#8E76DA]/50" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+        </svg>
+
+        <!-- Badge Logo Resmi SMPIT Al Madinah (Ujung Kanan) -->
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-sm flex items-center justify-center h-[68px] w-[124px] mb-4">
+            <img id="schoolLogoLogin" src="" alt="Logo SMPIT Al Madinah Tanjungpinang" class="w-full h-full object-contain" />
+            <span id="schoolLogoFallbackLogin" class="hidden text-xs font-extrabold text-ink tracking-wider">AL MADINAH</span>
+          </div>
+
+          <!-- Ilustrasi Minimalis Pastel (Laptop, Jaringan & Buku Informatika) -->
+          <svg class="w-56 h-28 drop-shadow-sm" viewBox="0 0 260 130" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <ellipse cx="130" cy="116" rx="92" ry="9" fill="#C4B6EE"/>
+            <rect x="172" y="54" width="17" height="58" rx="4" fill="#9E8CE0"/>
+            <rect x="176" y="61" width="9" height="4" rx="2" fill="#E9E3FA"/>
+            <rect x="191" y="62" width="16" height="50" rx="4" fill="#6BB6F6"/>
+            <rect x="195" y="69" width="8" height="4" rx="2" fill="#E6F4FF"/>
+            <rect x="46" y="96" width="82" height="16" rx="5" fill="#77BDF8"/>
+            <rect x="52" y="100" width="68" height="8" rx="3" fill="#FFFFFF"/>
+            <rect x="54" y="82" width="76" height="15" rx="5" fill="#95C9FA"/>
+            <rect x="60" y="86" width="62" height="7" rx="3" fill="#FFFFFF"/>
+            <rect x="86" y="34" width="90" height="60" rx="10" fill="#5D9CEC"/>
+            <rect x="92" y="40" width="78" height="48" rx="6" fill="#F8FBFF"/>
+            <rect x="99" y="47" width="32" height="6" rx="3" fill="#CBE4FA"/>
+            <rect x="99" y="57" width="56" height="5" rx="2.5" fill="#E2DAFA"/>
+            <rect x="99" y="66" width="42" height="5" rx="2.5" fill="#C5E8DD"/>
+            <rect x="99" y="75" width="24" height="6" rx="3" fill="#FCE794"/>
+            <rect x="150" y="20" width="28" height="28" rx="9" fill="#3B82D6"/>
+            <path d="M164 26L166.1 31.8L172 34L166.1 36.2L164 42L161.9 36.2L156 34L161.9 31.8L164 26Z" fill="#FFFFFF"/>
+            <path d="M74 96C74 93.8 75.8 92 78 92H184C186.2 92 188 93.8 188 96V102C188 106.4 184.4 110 180 110H82C77.6 110 74 106.4 74 102V96Z" fill="#77BDF8"/>
+            <rect x="116" y="97" width="30" height="4" rx="2" fill="#DCEEFF"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Lembar Putih Form Login -->
+      <div class="-mt-5 relative z-20 bg-white rounded-t-[32px] px-6 pt-6 pb-7 space-y-5">
+        <div class="text-center">
+          <p id="txtNamaSekolahLogin" class="text-[11px] font-bold uppercase tracking-[0.14em] text-lavender-deep">
+            SMP IT Al Madinah Tanjungpinang
+          </p>
+          <h1 id="txtJudulUjianLogin" class="text-[22px] sm:text-2xl font-extrabold text-ink tracking-tight leading-snug mt-1">
+            Ujian Praktik Informatika Kelas VII
+          </h1>
+          <p id="txtSubJudulLogin" class="text-xs text-muted mt-1">
+            Semester Ganjil • Tahun Ajaran 2026/2027
+          </p>
+        </div>
+
+        <!-- 3 Mini Pastel Pill Info -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-mint-soft rounded-2xl py-2.5 px-2 text-center">
+            <p class="text-[10px] font-medium text-ink/60">Durasi</p>
+            <p id="infoDurasi" class="text-xs sm:text-sm font-extrabold text-ink mt-0.5">60 Menit</p>
+          </div>
+          <div class="bg-butter-soft rounded-2xl py-2.5 px-2 text-center">
+            <p class="text-[10px] font-medium text-ink/60">Jumlah Soal</p>
+            <p id="infoJumlahSoal" class="text-xs sm:text-sm font-extrabold text-ink mt-0.5">30 HOTS</p>
+          </div>
+          <div class="bg-lavender-soft rounded-2xl py-2.5 px-2 text-center">
+            <p class="text-[10px] font-medium text-ink/60">Batas CBT</p>
+            <p id="infoBatasPelanggaran" class="text-xs sm:text-sm font-extrabold text-ink mt-0.5">Maks 3x</p>
+          </div>
+        </div>
+
+        <!-- Cakupan Materi Ringkas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+          <div class="bg-skycard-soft/75 rounded-2xl px-3.5 py-2.5">
+            <p class="font-bold text-ink">1. Sistem &amp; Jaringan Dasar</p>
+            <p class="text-ink/70 text-[10px] mt-0.5">Komponen PC, LAN, &amp; internet (15 soal)</p>
+          </div>
+          <div class="bg-mint-soft/75 rounded-2xl px-3.5 py-2.5">
+            <p class="font-bold text-ink">2. Literasi Media Digital</p>
+            <p class="text-ink/70 text-[10px] mt-0.5">Mesin pencari, fakta, opini &amp; hoaks (15 soal)</p>
+          </div>
+        </div>
+
+        <!-- Banner Lanjutkan Sesi jika ada auto-save -->
+        <div id="resumeSessionBanner" class="hidden bg-butter-soft rounded-2xl p-3.5 text-xs text-ink space-y-2">
+          <div class="font-bold flex items-center gap-1.5">
+            <span>⚡</span> Sesi sebelumnya masih tersimpan
+          </div>
+          <p id="resumeSessionDetail" class="text-ink/75 text-[11px]"></p>
+          <div class="flex gap-2 pt-0.5">
+            <button id="btnResumeSaved" type="button" class="flex-1 py-2 px-3 bg-ink hover:bg-neutral-800 text-white font-semibold rounded-full transition text-xs">
+              Lanjutkan
+            </button>
+            <button id="btnDiscardSaved" type="button" class="py-2 px-3.5 bg-white hover:bg-white/80 text-ink font-semibold rounded-full transition text-xs">
+              Mulai Baru
+            </button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="space-y-3" autocomplete="off">
+          <div>
+            <label for="inputNama" class="sr-only">Nama Lengkap Murid</label>
+            <input id="inputNama" type="text" required placeholder="Nama Lengkap Murid" class="w-full px-4 py-3.5 text-sm font-medium bg-canvas text-ink placeholder:text-muted/80 rounded-2xl border-2 border-transparent focus:border-ink focus:bg-white outline-none transition" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="relative">
+              <label for="selectKelas" class="sr-only">Pilih Kelas</label>
+              <select id="selectKelas" required class="w-full px-4 py-3.5 text-sm font-medium bg-canvas text-ink rounded-2xl border-2 border-transparent focus:border-ink focus:bg-white outline-none transition appearance-none cursor-pointer">
+                <option value="">Pilih Kelas</option>
+              </select>
+              <svg class="w-4 h-4 text-muted absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+            <div>
+              <label for="inputToken" class="sr-only">Token Ujian</label>
+              <input id="inputToken" type="text" required placeholder="Token Ujian" class="w-full px-4 py-3.5 text-sm uppercase font-bold tracking-wider bg-canvas text-ink placeholder:font-medium placeholder:normal-case placeholder:tracking-normal placeholder:text-muted/80 rounded-2xl border-2 border-transparent focus:border-ink focus:bg-white outline-none transition" />
+            </div>
+          </div>
+
+          <!-- Tata Tertib Ringkas -->
+          <div class="bg-canvas rounded-2xl p-3.5 text-[11px] text-muted space-y-1.5">
+            <p class="font-bold text-ink text-xs">Aturan Pengawasan CBT:</p>
+            <p class="leading-relaxed">Ujian berjalan di mode <strong class="text-ink">Layar Penuh</strong>. Dilarang berpindah tab, membuka web/aplikasi lain, atau memakai <em>split-screen</em> karena otomatis membunyikan alarm &amp; mencatat pelanggaran.</p>
+            <label class="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
+              <input id="checkSetuju" type="checkbox" required class="mt-0.5 w-4 h-4 rounded accent-ink border-slate-300" />
+              <span class="text-ink font-semibold leading-snug">Saya siap mengerjakan dengan jujur dan mematuhi aturan CBT.</span>
+            </label>
+          </div>
+
+          <div id="loginError" class="hidden bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-4 py-2.5 rounded-2xl text-center"></div>
+
+          <!-- Signature CTA Row: Pil Hitam + Lingkaran Panah Lavender -->
+          <div class="pt-2 flex items-center gap-3">
+            <button type="submit" class="group flex-1 flex items-center gap-3 w-full">
+              <span class="flex-1 py-3.5 px-6 bg-ink group-hover:bg-neutral-800 active:scale-[0.99] text-white font-semibold text-sm rounded-full transition text-center shadow-md shadow-ink/15">
+                Masuk Ujian
+              </span>
+              <span class="arrow-circle-btn w-12 h-12 rounded-full bg-lavender-card border-[1.5px] border-ink text-ink flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 6. HALAMAN RUANG UJIAN CBT — 30 SOAL HOTS (PASTEL CARD STYLE)         -->
+  <!-- ===================================================================== -->
+  <div id="examScreen" class="hidden min-h-screen flex flex-col exam-protected">
+
+    <!-- Header Bersih Bergaya Screen 2 Referensi -->
+    <header class="sticky top-0 z-40 bg-canvas/90 backdrop-blur-md">
+      <div class="max-w-5xl mx-auto px-4 pt-3.5 pb-2.5">
+        <div class="bg-white rounded-[26px] px-4 py-3 shadow-[0_10px_30px_-15px_rgba(24,24,31,0.12)] border border-white flex flex-wrap items-center justify-between gap-3">
+          <!-- Profil Murid & Mini Progress Bar Lavender -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-full bg-lavender-soft border-2 border-white shadow-sm flex items-center justify-center shrink-0 overflow-hidden p-1">
+              <img id="schoolLogoHeader" src="" alt="Logo" class="w-full h-full object-contain" />
+              <span id="schoolLogoFallbackHeader" class="hidden text-xs font-extrabold text-ink">AM</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs sm:text-sm font-bold text-ink truncate">
+                Halo, <span id="headerStudentName">Murid</span>!
+              </p>
+              <div class="flex items-center gap-2 mt-1">
+                <span id="headerStudentClass" class="text-[11px] font-medium text-muted truncate">VII Istanbul</span>
+                <div class="w-16 sm:w-28 h-1.5 bg-canvas rounded-full overflow-hidden shrink-0">
+                  <div id="headerProgressBar" class="h-full bg-lavender-deep rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pill Keamanan CBT, Timer, & Fullscreen -->
+          <div class="flex items-center gap-2 ml-auto">
+            <div id="badgeViolations" class="px-3 py-1.5 rounded-full bg-lavender-soft text-ink text-xs font-bold flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+              <span id="violationCounterText">0/3</span>
+            </div>
+
+            <div id="badgeTimer" class="px-3.5 py-1.5 rounded-full bg-ink text-white text-xs sm:text-sm font-bold font-mono flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-butter-card" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span id="timerText">60:00</span>
+            </div>
+
+            <button id="btnToggleFullscreen" type="button" title="Masuk Layar Penuh" class="w-9 h-9 rounded-full bg-canvas hover:bg-lavender-soft text-ink flex items-center justify-center transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Switcher Pill 2 Materi HOTS -->
+        <div class="mt-2.5 bg-white/85 rounded-full p-1.5 flex items-center gap-1.5 border border-white shadow-sm">
+          <button id="tabMateri1" type="button" class="flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-ink text-white">
+            <span class="truncate">1. Sistem &amp; Jaringan</span>
+            <span id="badgeMateri1Progress" class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white shrink-0">0/15</span>
+          </button>
+          <button id="tabMateri2" type="button" class="flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-muted hover:text-ink">
+            <span class="truncate">2. Literasi Digital</span>
+            <span id="badgeMateri2Progress" class="px-2 py-0.5 rounded-full text-[10px] bg-canvas text-ink shrink-0">0/15</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Konten Utama Ujian 30 Soal HOTS -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 pt-3 pb-28 space-y-4">
+
+      <!-- Baris Judul Besar + 2 Kartu Statistik Pastel (Gaya Screen 3 Referensi) -->
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
+        <div>
+          <span id="activeMateriBadge" class="inline-block px-3 py-1 rounded-full bg-skycard-soft text-ink text-[11px] font-bold mb-1.5">
+            Materi 1 • Sistem &amp; Jaringan Komputer Dasar
+          </span>
+          <h2 id="activeMateriHeading" class="text-xl sm:text-[26px] font-extrabold text-ink tracking-tight leading-tight">
+            Ujian Praktik HOTS Informatika
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 sm:w-80 shrink-0">
+          <div class="bg-mint-soft rounded-[22px] p-3 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-semibold text-ink/65">Terjawab</p>
+              <p id="statTotalAnswered" class="text-lg font-extrabold text-ink leading-tight mt-0.5">0 / 30</p>
+            </div>
+            <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-bold text-ink shadow-sm">✓</span>
+          </div>
+          <div class="bg-butter-soft rounded-[22px] p-3 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-semibold text-ink/65">Ragu-ragu</p>
+              <p id="statTotalFlagged" class="text-lg font-extrabold text-ink leading-tight mt-0.5">0 Soal</p>
+            </div>
+            <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-bold text-ink shadow-sm">🚩</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Soal Aktif + Panel Navigasi 30 Nomor -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+
+        <!-- Kartu Soal HOTS Aktif -->
+        <div class="lg:col-span-2 bg-white rounded-[30px] p-5 sm:p-6 shadow-[0_12px_32px_-16px_rgba(24,24,31,0.1)] border border-white space-y-4 fade-in">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-canvas">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="qNumberLabel" class="text-xs font-extrabold text-ink uppercase tracking-wider">Soal 1 dari 30</span>
+                <span id="qLevelBadge" class="px-2.5 py-0.5 rounded-full bg-lavender-soft text-ink text-[10px] font-bold">HOTS • C4</span>
+              </div>
+              <span id="qTopicTag" class="inline-block px-3 py-1 rounded-full bg-skycard-soft text-ink text-[11px] font-bold">
+                Komponen Sistem Komputer
+              </span>
+            </div>
+
+            <button id="btnToggleFlag" type="button" class="px-3.5 py-2 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-canvas text-muted hover:bg-butter-soft hover:text-ink">
+              <span>🚩</span>
+              <span id="flagBtnText">Ragu-ragu</span>
+            </button>
+          </div>
+
+          <!-- Kotak Stimulus / Kasus / Kutipan Media (muncul jika soal memiliki stimulus) -->
+          <div id="qStimulusBox" class="hidden rounded-2xl bg-canvas border border-lavender-soft/80 p-4 space-y-1.5">
+            <p id="qStimulusLabel" class="text-[10px] font-extrabold uppercase tracking-widest text-lavender-deep">Studi Kasus / Stimulus</p>
+            <p id="qStimulusText" class="text-xs sm:text-[13px] text-ink/90 leading-relaxed whitespace-pre-line"></p>
+          </div>
+
+          <!-- Pertanyaan Utama -->
+          <p id="qQuestionText" class="text-sm sm:text-[15px] font-semibold text-ink leading-relaxed">
+            Memuat soal...
+          </p>
+
+          <!-- Pilihan Jawaban A - D -->
+          <div id="qOptionsContainer" class="space-y-2.5 pt-1">
+            <!-- Opsi dirender oleh JS -->
+          </div>
+
+          <!-- Navigasi Prev / Next -->
+          <div class="flex items-center justify-between gap-2 pt-4 border-t border-canvas">
+            <button id="btnPrevQ" type="button" class="px-4 py-2.5 rounded-full bg-canvas hover:bg-slate-200/70 text-ink font-semibold text-xs sm:text-sm transition disabled:opacity-35">
+              ← Sebelumnya
+            </button>
+            <button id="btnNextQ" type="button" class="px-5 py-2.5 rounded-full bg-ink hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm transition">
+              Berikutnya →
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Navigasi Bulat 30 Soal (Dikelompokkan per Materi) -->
+        <div class="bg-white rounded-[30px] p-5 shadow-[0_12px_32px_-16px_rgba(24,24,31,0.1)] border border-white space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-ink">Progres 30 Soal</h3>
+            <span id="navProgressPct" class="px-2.5 py-0.5 rounded-full bg-lavender-soft text-ink text-[11px] font-bold">0%</span>
+          </div>
+
+          <!-- Grid Materi 1 (1-15) -->
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-skycard-deep mb-2">Materi 1 • Sistem &amp; Jaringan</p>
+            <div id="qNavGrid1" class="grid grid-cols-5 gap-2"></div>
+          </div>
+
+          <!-- Grid Materi 2 (16-30) -->
+          <div class="pt-3 border-t border-canvas">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-mint-deep mb-2">Materi 2 • Literasi Digital</p>
+            <div id="qNavGrid2" class="grid grid-cols-5 gap-2"></div>
+          </div>
+
+          <!-- Legenda Warna Pastel -->
+          <div class="pt-3 border-t border-canvas grid grid-cols-2 gap-2 text-[11px] font-medium text-muted">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-[#64C49B] inline-block"></span> Terjawab
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-butter-card inline-block"></span> Ragu-ragu
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-canvas inline-block"></span> Kosong
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full border-2 border-ink inline-block"></span> Aktif
+            </div>
+          </div>
+
+          <!-- Tombol Kumpulkan Ujian -->
+          <div class="pt-2 border-t border-canvas">
+            <button id="btnOpenSubmitModal" type="button" class="group w-full flex items-center gap-2">
+              <span class="flex-1 py-3 px-4 rounded-full bg-ink group-hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm text-center transition">
+                Kumpulkan Ujian
+              </span>
+              <span class="arrow-circle-btn w-11 h-11 rounded-full bg-lavender-card border-[1.5px] border-ink text-ink flex items-center justify-center shrink-0">
+                →
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Floating Bottom Pill Bar Khusus HP Android -->
+    <div class="fixed bottom-3 inset-x-4 z-30 sm:hidden">
+      <div class="bg-white/95 backdrop-blur-md rounded-full px-4 py-2 shadow-[0_14px_30px_-8px_rgba(24,24,31,0.22)] border border-white flex items-center justify-between gap-2">
+        <div class="text-xs text-muted pl-1">
+          Terjawab: <strong id="mobileTotalProgress" class="text-ink">0/30</strong>
+        </div>
+        <button id="btnMobileSubmit" type="button" class="px-4 py-2 rounded-full bg-ink text-white text-xs font-semibold flex items-center gap-1.5">
+          <span>Kumpulkan</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 7. HALAMAN HASIL & REKAP UJIAN (PASTEL STRIPED PROGRESS CHART STYLE)  -->
+  <!-- ===================================================================== -->
+  <section id="resultScreen" class="hidden min-h-screen py-7 px-4 flex items-center justify-center">
+    <div class="max-w-lg w-full bg-white rounded-[36px] shadow-[0_24px_60px_-20px_rgba(38,29,77,0.18)] border border-white overflow-hidden fade-in">
+
+      <!-- Kop Pastel Hasil -->
+      <div class="bg-lavender-soft px-6 pt-6 pb-7 text-center relative overflow-hidden">
+        <div class="bg-white px-4 py-2 rounded-2xl shadow-sm inline-flex items-center justify-center h-[62px] w-[114px] mb-3">
+          <img id="schoolLogoResult" src="" alt="Logo SMPIT Al Madinah" class="w-full h-full object-contain" />
+          <span id="schoolLogoFallbackResult" class="hidden text-ink font-extrabold text-xs">AL MADINAH</span>
+        </div>
+        <p id="resSchoolTitle" class="text-[11px] font-bold uppercase tracking-[0.14em] text-lavender-deep">
+          SMP IT Al Madinah Tanjungpinang
+        </p>
+        <h2 class="text-2xl font-extrabold text-ink tracking-tight mt-0.5">Ujian Selesai!</h2>
+        <div class="mt-2 inline-flex items-center gap-2 bg-white/85 px-3.5 py-1 rounded-full">
+          <span class="text-xs text-muted font-medium">Predikat:</span>
+          <span id="resPredicateBadge" class="text-xs font-extrabold text-ink">Sangat Baik</span>
+        </div>
+      </div>
+
+      <div class="-mt-4 relative z-10 bg-white rounded-t-[30px] p-6 space-y-5">
+        <!-- Status Pengiriman Google Sheets -->
+        <div id="sheetStatusBox" class="rounded-2xl p-3.5 text-xs font-semibold flex items-center justify-between gap-2">
+          <span id="sheetStatusText">Memeriksa status pengiriman nilai...</span>
+          <button id="btnRetrySheet" type="button" class="hidden px-3 py-1.5 rounded-full bg-rose-600 text-white text-[11px] font-bold hover:bg-rose-700 shrink-0">
+            Kirim Ulang
+          </button>
+        </div>
+
+        <!-- Grafik Kapsul Bergaris Bergaya Screen 3 Referensi -->
+        <div class="bg-lavender-soft/85 rounded-[28px] p-4 sm:p-5">
+          <div class="flex items-center justify-between mb-3 px-1">
+            <span class="text-xs font-extrabold text-ink">Capaian 30 Soal HOTS</span>
+            <span class="text-[11px] font-bold text-ink/65">Skala 0 – 100</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 items-end">
+            <!-- Bar 1: Materi 1 Sistem & Jaringan (Butter Yellow) -->
+            <div class="flex flex-col items-center">
+              <div class="striped-capsule w-full h-44 rounded-full p-1.5 flex flex-col justify-end relative overflow-hidden">
+                <div id="barMateri1Fill" class="w-full bg-butter-card rounded-full flex flex-col items-center justify-start pt-2.5 pb-3 transition-all duration-700" style="height: 60%; min-height: 76px;">
+                  <span id="pillMateri1Val" class="px-2.5 py-0.5 rounded-full bg-ink text-white text-[10px] font-bold">0%</span>
+                  <span id="resMateri1Score" class="text-xs font-extrabold text-ink mt-1.5">0/15</span>
+                  <span class="text-[9px] text-ink/70 font-medium text-center px-1 leading-tight mt-0.5">Benar</span>
+                </div>
+              </div>
+              <span class="text-[11px] font-bold text-ink mt-2 text-center leading-tight">Sistem &amp; Jaringan</span>
+            </div>
+
+            <!-- Bar 2: Nilai Akhir (Lavender) -->
+            <div class="flex flex-col items-center">
+              <div class="striped-capsule w-full h-44 rounded-full p-1.5 flex flex-col justify-end relative overflow-hidden">
+                <div id="barTotalFill" class="w-full bg-[#C4B5F2] rounded-full flex flex-col items-center justify-start pt-2.5 pb-3 transition-all duration-700" style="height: 80%; min-height: 84px;">
+                  <span class="px-2.5 py-0.5 rounded-full bg-ink text-white text-[10px] font-bold">Total</span>
+                  <span id="resFinalScore" class="text-2xl font-extrabold text-ink leading-none mt-2">0</span>
+                  <span id="resTotalBenarDetail" class="text-[9px] text-ink/70 font-semibold mt-0.5">0/30 benar</span>
+                </div>
+              </div>
+              <span class="text-[11px] font-extrabold text-ink mt-2 text-center leading-tight">Nilai Akhir</span>
+            </div>
+
+            <!-- Bar 3: Materi 2 Literasi Digital (Mint) -->
+            <div class="flex flex-col items-center">
+              <div class="striped-capsule w-full h-44 rounded-full p-1.5 flex flex-col justify-end relative overflow-hidden">
+                <div id="barMateri2Fill" class="w-full bg-mint-card rounded-full flex flex-col items-center justify-start pt-2.5 pb-3 transition-all duration-700" style="height: 60%; min-height: 76px;">
+                  <span id="pillMateri2Val" class="px-2.5 py-0.5 rounded-full bg-ink text-white text-[10px] font-bold">0%</span>
+                  <span id="resMateri2Score" class="text-xs font-extrabold text-ink mt-1.5">0/15</span>
+                  <span class="text-[9px] text-ink/70 font-medium text-center px-1 leading-tight mt-0.5">Benar</span>
+                </div>
+              </div>
+              <span class="text-[11px] font-bold text-ink mt-2 text-center leading-tight">Literasi Digital</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Identitas & Log Pengawasan -->
+        <div class="bg-canvas rounded-[24px] p-4 text-xs space-y-2.5">
+          <div class="flex justify-between gap-2">
+            <span class="text-muted">Nama Murid</span>
+            <span id="resNama" class="font-bold text-ink text-right">-</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-muted">Kelas</span>
+            <span id="resKelas" class="font-bold text-ink text-right">-</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-muted">Waktu Selesai</span>
+            <span id="resWaktu" class="font-bold text-ink text-right">-</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-muted">Pengawasan CBT</span>
+            <span id="resPelanggaran" class="font-bold text-right">-</span>
+          </div>
+          <div id="resLogContainer" class="hidden pt-2.5 border-t border-slate-200/70">
+            <p class="text-[11px] font-bold text-rose-700 mb-1">Riwayat Log Pelanggaran:</p>
+            <ul id="resLogList" class="text-[11px] text-muted space-y-0.5 list-disc pl-4"></ul>
+          </div>
+        </div>
+
+        <!-- Tombol Cadangan Bukti Hasil -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button id="btnCopyReceipt" type="button" class="py-3 px-4 rounded-full bg-skycard-soft hover:bg-skycard-card text-ink font-bold text-xs transition flex items-center justify-center gap-1.5">
+            <span>📋</span> Salin Bukti
+          </button>
+          <button id="btnDownloadReceipt" type="button" class="py-3 px-4 rounded-full bg-ink hover:bg-neutral-800 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5">
+            <span>⬇️</span> Unduh (.txt)
+          </button>
+        </div>
+
+        <p id="copyToast" class="hidden text-center text-xs font-bold text-mint-deep bg-mint-soft py-2.5 rounded-full">
+          ✓ Bukti hasil ujian berhasil disalin!
+        </p>
+
+        <button id="btnNewSession" type="button" class="w-full py-3 px-4 rounded-full bg-canvas hover:bg-lavender-soft/60 text-muted hover:text-ink font-semibold text-xs transition">
+          Keluar &amp; Kembali ke Halaman Awal
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 8. KONFIGURASI GURU, 30 SOAL HOTS, & LOGIKA APLIKASI CBT              -->
+  <!-- ===================================================================== -->
+  <script>
+    /* =====================================================================
+     * BAGIAN A: KONFIGURASI UTAMA (MUDAH DIEDIT GURU)
+     * ---------------------------------------------------------------------
+     * Cukup ubah teks di dalam tanda kutip ("...") atau angka di bawah ini.
+     * Jangan hapus tanda koma (,) di akhir setiap baris.
+     * ===================================================================== */
+    const KONFIGURASI_UJIAN = {
+      namaSekolah: "SMP IT Al Madinah Tanjungpinang",
+      judulUjian: "Ujian Praktik Informatika Kelas VII",
+      subJudul: "Semester Ganjil • Tahun Ajaran 2026/2027",
+      logoPath: "", // Kosongkan untuk memakai logo resmi SMPIT Al Madinah bawaan yang sudah tertanam
+      daftarKelas: [
+        "VII Istanbul",
+        "VII Jeddah",
+        "VII Alexandria",
+        "VII Granada"
+      ],
+      tokenUjian: "INFO7GANJIL", // Token masuk murid (tidak peka huruf besar/kecil)
+      pinPengawas: "123456",     // PIN guru untuk membuka layar jika terkunci
+      durasiMenit: 60,           // Durasi pengerjaan (dalam menit)
+      batasPelanggaran: 3,       // Jumlah pindah tab / keluar fullscreen sebelum terkunci otomatis
+      googleScriptUrl: ""        // Tempel URL Web App Google Apps Script (/exec) di sini jika sudah dibuat
+    };
+
+    /* =====================================================================
+     * BAGIAN B: 30 SOAL HOTS INFORMATIKA KELAS VII SEMESTER GANJIL
+     * ---------------------------------------------------------------------
+     * materi: 1 = Sistem dan Jaringan Komputer Dasar (No. 1 - 15)
+     *         2 = Literasi Informasi & Analisis Media Digital (No. 16 - 30)
+     * jawabanBenar: 0 = Opsi A, 1 = Opsi B, 2 = Opsi C, 3 = Opsi D
+     * Anda bebas mengedit, menambah, atau mengurangi soal; sistem penilaian
+     * otomatis (skala 0-100) & panel nomor langsung menyesuaikan.
+     * ===================================================================== */
+    const DATA_SOAL = [
+      // ===================================================================
+      // MATERI 1: SISTEM DAN JARINGAN KOMPUTER DASAR (SOAL 1 - 15)
+      // ===================================================================
+      {
+        id: 1,
+        materi: 1,
+        topik: "Alur Kerja Sistem Komputer (IPO)",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Di laboratorium komputer, murid mengetik ringkasan materi menggunakan keyboard, lalu menekan tombol Save (Simpan) ke penyimpanan lokal. Lima menit kemudian murid menambahkan satu paragraf baru namun belum menekan Save saat listrik tiba-tiba padam.",
+        soal: "Berdasarkan cara kerja sistem komputer, mengapa paragraf awal tetap aman sedangkan paragraf terakhir yang baru diketik hilang?",
+        opsi: [
+          "Paragraf awal tersimpan di CPU, sedangkan paragraf terakhir masih tertahan di keyboard.",
+          "Paragraf awal sudah ditulis ke penyimpanan permanen (SSD/HDD), sedangkan paragraf terakhir masih berada di RAM yang bersifat sementara (volatile).",
+          "Paragraf awal sudah terkirim ke monitor sebagai output, sedangkan paragraf terakhir belum masuk ke sistem operasi.",
+          "Paragraf awal tersimpan di motherboard, sedangkan paragraf terakhir dihapus otomatis oleh prosesor saat listrik padam."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 2,
+        materi: 1,
+        topik: "Evaluasi Kinerja RAM & Penyimpanan",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Perbandingan dua komputer di ruang praktik:\n• PC A: Prosesor kelas menengah, RAM 4 GB, HDD 1 TB (ruang kosong 800 GB).\n• PC B: Prosesor setara, RAM 8 GB, SSD 256 GB (ruang kosong 90 GB).\nKetika dipakai membuka 12 tab browser sekaligus aplikasi presentasi, PC A terasa sangat macet sedangkan PC B berjalan lancar.",
+        soal: "Evaluasi yang paling tepat terhadap penyebab perbedaan performa kedua komputer tersebut adalah...",
+        opsi: [
+          "Kapasitas penyimpanan PC A terlalu penuh sehingga tidak mampu memuat aplikasi presentasi.",
+          "PC B lebih lancar karena ukuran ruang kosong penyimpanannya lebih kecil daripada PC A.",
+          "Kapasitas RAM PC A terlalu sempit untuk multitasking dan kecepatan baca-tulis HDD jauh lebih lambat dibandingkan SSD pada PC B.",
+          "Monitor pada PC A tidak mendukung tampilan banyak tab browser sekaligus."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 3,
+        materi: 1,
+        topik: "Troubleshooting Perangkat Keras",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Saat jam praktik dimulai, sebuah PC dinyalakan. Lampu indikator casing menyala, kipas CPU berputar normal, dan lampu indikator NumLock di keyboard dapat menyala serta mati saat ditekan. Namun, layar monitor tetap gelap dan menampilkan pesan 'No Signal'.",
+        soal: "Langkah diagnosis awal yang paling logis untuk menemukan sumber masalah tersebut adalah...",
+        opsi: [
+          "Memeriksa sambungan kabel HDMI/VGA antara PC dan monitor serta memastikan mode sumber input monitor sudah sesuai.",
+          "Langsung mengganti keyboard dan mouse karena perangkat masukan tidak mengirim sinyal ke layar.",
+          "Memformat ulang penyimpanan SSD karena sistem operasi pasti mengalami kerusakan total.",
+          "Mencabut kabel speaker dan mengganti printer yang terpasang pada port USB."
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 4,
+        materi: 1,
+        topik: "Interaksi Hardware, Software & Brainware",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Seorang murid menghubungkan printer baru ke komputer sekolah menggunakan kabel USB dan menyalakan tombol daya printer. Komputer mengeluarkan bunyi notifikasi perangkat terpasang, tetapi saat mencetak dokumen nama printer tidak dapat dipakai dan muncul tanda seru kuning di pengaturan perangkat.",
+        soal: "Komponen sistem komputer apa yang paling mungkin belum terpenuhi sehingga printer belum dapat berkomunikasi dengan sistem operasi?",
+        opsi: [
+          "Kapasitas Hard Disk komputer terlalu kecil untuk menampung kertas cetak.",
+          "Komputer belum memiliki perangkat input seperti scanner untuk membaca dokumen.",
+          "Komputer harus tersambung ke internet berkecepatan tinggi agar kabel USB dapat dialiri listrik.",
+          "Perangkat lunak driver khusus printer belum terpasang atau belum sesuai dengan sistem operasi."
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 5,
+        materi: 1,
+        topik: "Peran Sistem Operasi pada Komputer",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Sebuah PC rakitan baru sudah dilengkapi prosesor, motherboard, RAM 8 GB, SSD 512 GB, monitor, dan keyboard yang terpasang benar. Ketika dinyalakan, komputer hanya berhenti pada layar hitam bertuliskan 'Bootable device not found / Operating System Not Found'.",
+        soal: "Analisis paling tepat mengenai kondisi komputer tersebut adalah...",
+        opsi: [
+          "Motherboard tidak cocok dengan keyboard sehingga komputer menolak masuk ke layar utama.",
+          "Perangkat keras sudah terpasang, tetapi Sistem Operasi (seperti Windows atau Linux) belum diinstal atau belum terdeteksi pada media penyimpanan.",
+          "Monitor mengalami kerusakan panel layar karena hanya menampilkan teks berwarna putih.",
+          "Komputer memerlukan koneksi Wi-Fi terlebih dahulu sebelum sistem BIOS dapat berjalan."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 6,
+        materi: 1,
+        topik: "Pemilihan Spesifikasi PC yang Efisien",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Pengurus kelas membutuhkan 1 unit laptop dengan anggaran hemat khusus untuk mengetik laporan, mengolah tabel nilai, membuat slide presentasi, dan mengikuti ujian berbasis web (CBT).",
+        soal: "Dari pilihan berikut, spesifikasi mana yang paling seimbang, efisien, dan sesuai kebutuhan belajar tanpa pemborosan?",
+        opsi: [
+          "Laptop gaming termahal dengan kartu grafis kelas berat dan lampu RGB, meski anggaran habis hanya untuk satu perangkat.",
+          "Laptop tanpa SSD yang masih memakai HDD lama berkapasitas besar namun RAM hanya 2 GB.",
+          "Laptop dengan prosesor kelas menengah, RAM 8 GB, dan penyimpanan SSD 256 GB.",
+          "Hanya membeli monitor besar dan keyboard mekanikal tanpa unit pemroses utama."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 7,
+        materi: 1,
+        topik: "Fungsi & Pengelompokan Perangkat Keras",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Dalam satu sesi presentasi proyek Informatika di kelas VII Istanbul, murid menggunakan mikrofon untuk berbicara, laptop untuk mengolah slide, proyektor LCD untuk menampilkan materi ke dinding, dan flashdisk untuk membawa salinan berkas.",
+        soal: "Jika dikelompokkan berdasarkan peran utamanya secara berurutan (mikrofon → CPU laptop → proyektor → flashdisk), pasangan kategori perangkat yang tepat adalah...",
+        opsi: [
+          "Input → Process → Output → Storage",
+          "Output → Process → Input → Storage",
+          "Input → Storage → Output → Process",
+          "Process → Input → Storage → Output"
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 8,
+        materi: 1,
+        topik: "Konsep Jaringan Lokal (LAN) vs Internet",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Di laboratorium Informatika, saluran internet dari penyedia layanan (ISP) sedang mengalami gangguan total. Namun, seluruh 20 komputer murid, 1 komputer guru, dan 1 printer jaringan masih tersambung rapi ke sebuah Switch menggunakan kabel LAN.",
+        soal: "Aktivitas manakah yang MASIH dapat dilakukan melalui jaringan laboratorium pada kondisi tersebut?",
+        opsi: [
+          "Mencari referensi artikel terbaru melalui mesin pencari Google di internet.",
+          "Mengirim tugas ke alamat email guru menggunakan layanan Gmail online.",
+          "Menonton video tutorial secara langsung dari situs YouTube.",
+          "Berbagi berkas tugas antar-komputer di lab melalui folder bersama (file sharing) dan mencetak dokumen ke printer jaringan lokal."
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 9,
+        materi: 1,
+        topik: "Konektivitas Kabel vs Nirkabel",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Ruang laboratorium komputer berada di lantai dua dengan dinding beton tebal dan memiliki 30 komputer meja (PC Desktop) yang digunakan serentak untuk ujian CBT. Saat ini PC tersebut memakai penerima Wi-Fi dari ruangan sebelah sehingga koneksi sering terputus.",
+        soal: "Evaluasi solusi jaringan yang paling stabil dan direkomendasikan untuk 30 PC Desktop di ruangan tersebut adalah...",
+        opsi: [
+          "Menghubungkan seluruh 30 PC menggunakan Bluetooth ke satu smartphone pengawas.",
+          "Menghubungkan PC Desktop menggunakan kabel LAN (UTP/Ethernet) melalui Switch yang terhubung ke Router utama.",
+          "Meminta seluruh murid membawa kabel HDMI untuk menyambungkan PC satu sama lain.",
+          "Menempatkan seluruh komputer di luar ruangan agar lebih dekat ke sinyal seluler."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 10,
+        materi: 1,
+        topik: "Peran Router, Switch, dan Access Point",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Sekolah berlangganan satu jalur kabel Fiber Optik dari ISP. Agar seluruh kelas VII (Istanbul, Jeddah, Alexandria, Granada) bisa memakai koneksi internet tersebut secara nirkabel menggunakan HP/laptop secara bersamaan, teknisi memasang Router dan beberapa Access Point di koridor kelas.",
+        soal: "Analisis pembagian tugas yang benar antara Router dan Access Point pada jaringan sekolah tersebut adalah...",
+        opsi: [
+          "Router berfungsi menampilkan halaman web di layar, sedangkan Access Point berfungsi menyimpan seluruh file tugas murid.",
+          "Access Point menggantikan fungsi ISP, sedangkan Router hanya dipakai untuk menyambungkan printer.",
+          "Router mengatur jalur lalu lintas data serta membagikan alamat IP dari jaringan sekolah ke internet, sedangkan Access Point memancarkan sinyal Wi-Fi agar perangkat nirkabel dapat terhubung.",
+          "Keduanya berfungsi sama persis sebagai media penyimpanan awan (cloud storage) bagi seluruh murid."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 11,
+        materi: 1,
+        topik: "Penerapan Konektivitas Nirkabel Sehari-hari",
+        level: "HOTS • C6 (Pemecahan Masalah)",
+        stimulus: "Saat kegiatan luar kelas di halaman sekolah yang tidak terjangkau Wi-Fi sekolah, dua skenario terjadi:\n1) Fadhil ingin mengirim 1 foto dokumentasi (3 MB) ke HP temannya yang berdiri di sebelahnya tanpa memakai kuota internet.\n2) Guru perlu mengunggah rekap absen dari laptop ke Google Sheets memakai koneksi paket data dari HP-nya.",
+        soal: "Kombinasi teknologi konektivitas nirkabel yang paling tepat untuk menyelesaikan skenario (1) dan (2) berturut-turut adalah...",
+        opsi: [
+          "Bluetooth / Nearby Share untuk skenario (1), dan Tethering (Mobile Hotspot) seluler untuk skenario (2).",
+          "Kabel Fiber Optik untuk skenario (1), dan Bluetooth untuk skenario (2).",
+          "Inframerah TV untuk skenario (1), dan Kabel VGA untuk skenario (2).",
+          "Tethering berbayar untuk skenario (1), dan NFC kartu tol untuk skenario (2)."
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 12,
+        materi: 1,
+        topik: "Analisis Gangguan Sinyal Wi-Fi",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Access Point Wi-Fi di koridor kelas VII dipasang di dalam kotak lemari besi tertutup di sudut bawah lantai. Akibatnya, murid yang duduk di kelas ujung hanya mendapatkan 1 bar sinyal dan koneksi sering terputus meski kecepatan langganan internet sekolah sudah 100 Mbps.",
+        soal: "Mengapa masalah tersebut terjadi dan perbaikan apa yang paling tepat dilakukan?",
+        opsi: [
+          "Karena paket internet 100 Mbps hanya bisa digunakan untuk 1 ruangan saja, sehingga perlu mengganti monitor kelas.",
+          "Karena sinyal Wi-Fi hanya bisa merambat ke arah bawah lantai, sehingga HP murid harus diletakkan di lantai.",
+          "Karena Wi-Fi membutuhkan kabel RJ45 agar bisa masuk ke HP murid secara langsung.",
+          "Karena bahan logam dan posisi tertutup menghambat gelombang radio Wi-Fi; solusinya memindahkan Access Point ke posisi terbuka dan tinggi di area tengah koridor."
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 13,
+        materi: 1,
+        topik: "Troubleshooting Koneksi Jaringan Lokal",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Saat ujian berlangsung di lab, 19 komputer terhubung lancar ke internet, tetapi khusus komputer nomor 7 menampilkan ikon tidak ada koneksi jaringan (disconnected) padahal menggunakan kabel LAN yang sama-sama menuju Switch ruangan.",
+        soal: "Urutan pemeriksaan paling efektif untuk mengatasi gangguan pada komputer nomor 7 adalah...",
+        opsi: [
+          "Mematikan listrik seluruh gedung sekolah lalu mengganti ISP yang digunakan sekolah.",
+          "Memeriksa apakah konektor RJ45 kabel LAN di belakang PC nomor 7 longgar/rusak, mengecek lampu indikator port LAN, lalu memeriksa pengaturan adapter jaringan pada PC tersebut.",
+          "Menghapus seluruh dokumen di komputer nomor 1 sampai 19 agar jaringan menjadi ringan.",
+          "Mengganti sistem operasi seluruh komputer di laboratorium."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 14,
+        materi: 1,
+        topik: "Konsep Alamat IP dalam Jaringan",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Dua komputer di jaringan lokal laboratorium secara tidak sengaja diatur menggunakan alamat IP statis yang persis sama, yaitu 192.168.10.25. Seketika muncul peringatan 'IP Address Conflict' dan komunikasi data kedua komputer terganggu.",
+        soal: "Analisislah mengapa dua perangkat dalam satu jaringan lokal tidak boleh memiliki alamat IP yang sama!",
+        opsi: [
+          "Karena alamat IP menentukan ukuran layar monitor sehingga tampilan menjadi kabur.",
+          "Karena alamat IP hanya berlaku untuk perangkat nirkabel dan tidak boleh dipakai pada kabel LAN.",
+          "Karena alamat IP berfungsi sebagai identitas unik pengirim dan penerima paket data; jika kembar, perangkat jaringan kebingungan menentukan tujuan pengiriman data.",
+          "Karena alamat IP yang sama akan langsung merusak kapasitas memori penyimpanan SSD secara permanen."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 15,
+        materi: 1,
+        topik: "Keamanan Konektivitas Wi-Fi Publik",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Saat menyambungkan ponsel ke Wi-Fi gratis tanpa kata sandi bernama 'FREE_WIFI_CEPAT' di tempat umum, tiba-tiba muncul halaman login tidak resmi yang meminta alamat email pribadi, kata sandi email, dan kode OTP SMS agar internet bisa dipakai.",
+        soal: "Keputusan paling aman berdasarkan prinsip keamanan jaringan internet adalah...",
+        opsi: [
+          "Segera memutus koneksi Wi-Fi tersebut, tidak mengisi data sensitif apa pun, dan beralih ke paket data pribadi atau jaringan terpercaya.",
+          "Mengisi kata sandi email saja tetapi membiarkan kode OTP kosong agar cepat terhubung.",
+          "Mengirimkan tangkapan layar kode OTP ke halaman tersebut lalu mengganti wallpaper HP.",
+          "Menyuruh teman lain mencoba login terlebih dahulu menggunakan akun miliknya."
+        ],
+        jawabanBenar: 0
+      },
+
+      // ===================================================================
+      // MATERI 2: LITERASI INFORMASI & ANALISIS MEDIA DIGITAL (SOAL 16 - 30)
+      // ===================================================================
+      {
+        id: 16,
+        materi: 2,
+        topik: "Cara Kerja Mesin Pencari (Search Engine)",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Panitia sekolah baru saja menerbitkan halaman pengumuman lomba karya tulis di situs web baru 3 menit yang lalu. Saat seorang murid mengetik judul pengumuman itu di mesin pencari (Google), halaman tersebut belum muncul pada daftar hasil pencarian.",
+        soal: "Berdasarkan cara kerja mesin pencari (Crawling, Indexing, Ranking), penjelasan yang paling tepat untuk kondisi tersebut adalah...",
+        opsi: [
+          "Mesin pencari hanya menampilkan situs web yang membayar biaya langganan harian.",
+          "Perayap mesin pencari (crawler/bot) belum sempat mengunjungi dan memasukkan halaman baru tersebut ke dalam basis data indeks (indexing).",
+          "Komputer murid tidak memiliki RAM yang cukup untuk membuka mesin pencari.",
+          "Mesin pencari secara otomatis menghapus semua situs yang bertema pendidikan."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 17,
+        materi: 2,
+        topik: "Strategi Kata Kunci Pencarian Akurat",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Murid kelas VII Jeddah ingin mencari artikel edukatif mengenai cara kerja perangkat jaringan router untuk tugas sekolah, tetapi saat hanya mengetik kata 'router', hasil yang muncul didominasi toko online yang menjual produk router.",
+        soal: "Manakah perbaikan kata kunci pencarian yang paling efektif agar hasil lebih fokus pada materi pembelajaran?",
+        opsi: [
+          "beli router murah promo ongkir",
+          "internet cepat sekarang juga",
+          "cara kerja fungsi router jaringan komputer materi informatika",
+          "router"
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 18,
+        materi: 2,
+        topik: "Operator Pencarian (Tanda Kutip & Minus)",
+        level: "HOTS • C6 (Pemecahan Masalah)",
+        stimulus: "Seorang murid sedang mencari informasi tentang hewan 'jaguar' untuk proyek sains, namun hampir seluruh hasil pencarian menampilkan berita dan harga mobil bermerek Jaguar.",
+        soal: "Penggunaan operator mesin pencari yang paling tepat untuk menyaring hasil agar mengecualikan topik mobil adalah...",
+        opsi: [
+          "jaguar +mobil +harga",
+          "jaguar /mobil",
+          "mobil:jaguar",
+          "jaguar habitat -mobil -harga"
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 19,
+        materi: 2,
+        topik: "Operator Pencarian Spesifik (site: & filetype:)",
+        level: "HOTS • C6 (Pemecahan Masalah)",
+        stimulus: "Guru menugaskan murid mengunduh buku atau modul resmi berformat PDF tentang 'Informatika Kelas 7' yang diterbitkan langsung pada domain situs Kementerian Pendidikan (kemdikbud.go.id).",
+        soal: "Kueri pencarian paling presisi yang harus diketik pada kotak mesin pencari adalah...",
+        opsi: [
+          "\"Informatika Kelas 7\" site:kemdikbud.go.id filetype:pdf",
+          "Informatika Kelas 7 -pdf -kemdikbud.go.id",
+          "pdf:Informatika kelas 7 semua web",
+          "download buku informatika viral terbaru"
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 20,
+        materi: 2,
+        topik: "Evaluasi Hasil Organik vs Iklan (Sponsored)",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Saat mencari tautan unduhan aplikasi belajar resmi di mesin pencari, dua hasil paling atas bertanda label kecil 'Bersponsor / Sponsored' dengan alamat URL mencurigakan (mirip nama aslinya tetapi hurufnya diganti angka), sedangkan situs resmi pengembang berada di urutan ketiga.",
+        soal: "Tindakan paling kritis dan aman saat melihat hasil pencarian tersebut adalah...",
+        opsi: [
+          "Langsung mengeklik urutan paling atas karena posisi pertama pasti merupakan situs paling resmi dan aman.",
+          "Memeriksa alamat domain secara teliti, melewati tautan bersponsor yang mencurigakan, dan memilih situs resmi pengembang pada hasil organik.",
+          "Mengunduh dari semua tautan sekaligus lalu membandingkannya setelah terpasang di perangkat.",
+          "Membagikan tautan bersponsor tersebut ke grup kelas agar teman-teman ikut mencobanya."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 21,
+        materi: 2,
+        topik: "Kredibilitas Sumber Informasi Digital",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Untuk menyusun laporan tentang pelestarian terumbu karang di Kepulauan Riau, murid menemukan 4 sumber digital:\n(1) Blog pribadi anonim tanpa daftar referensi.\n(2) Kolom komentar warganet di video pendek.\n(3) Artikel portal resmi instansi kelautan (.go.id) / universitas (.ac.id) yang memuat penulis, tanggal publikasi, dan data riset.\n(4) Tangkapan layar pesan berantai tanpa sumber.",
+        soal: "Sumber manakah yang paling kredibel untuk dijadikan rujukan utama laporan ilmiah dan apa alasannya?",
+        opsi: [
+          "Sumber (2), karena komentar warganet mewakili suara paling banyak dan cepat.",
+          "Sumber (4), karena tangkapan layar pesan berantai biasanya lebih ringkas dibaca.",
+          "Sumber (3), karena diterbitkan lembaga otoritatif yang jelas pertanggungjawaban, penulis, waktu terbit, serta dukungan datanya.",
+          "Sumber (1), karena blog anonim selalu bebas dari kesalahan penulisan."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 22,
+        materi: 2,
+        topik: "Membedakan Fakta dan Opini",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Perhatikan empat kutipan dari sebuah berita media pers digital berikut:\n(1) Pameran inovasi pelajar ini terasa jauh lebih meriah dibandingkan tahun lalu.\n(2) Sebaiknya seluruh sekolah mewajibkan murid mengikuti klub robotika.\n(3) Karya tim kelas VII terlihat paling keren dan layak menjadi juara bertahan.\n(4) Pameran Teknologi Pelajar Kepulauan Riau diikuti 24 sekolah pada tanggal 14 November 2026 di Tanjungpinang.",
+        soal: "Kalimat manakah yang merupakan FAKTA jurnalistik karena dapat dibuktikan secara objektif?",
+        opsi: [
+          "Kalimat (1)",
+          "Kalimat (2)",
+          "Kalimat (3)",
+          "Kalimat (4)"
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 23,
+        materi: 2,
+        topik: "Analisis Kalimat Opini dalam Media Digital",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Cuplikan artikel pers digital tentang gerakan bebas plastik di sekolah:\n(A) Program pengurangan plastik ini sepertinya akan sulit berhasil jika kantin belum siap sepenuhnya.\n(B) Mulai 1 Agustus 2026, kantin sekolah menyediakan wadah makan guna ulang bagi murid.\n(C) Berdasarkan catatan petugas kebersihan, volume sampah plastik berkurang 40% dalam sebulan.\n(D) Sebanyak 120 murid membawa botol minum pribadi pada hari pertama pelaksanaan.",
+        soal: "Manakah pernyataan yang termasuk OPINI (pandangan subjektif penulis)?",
+        opsi: [
+          "Pernyataan (A)",
+          "Pernyataan (B)",
+          "Pernyataan (C)",
+          "Pernyataan (D)"
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 24,
+        materi: 2,
+        topik: "Identifikasi Judul Clickbait vs Jurnalistik",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Empat portal berita digital memberitakan pembaruan sistem keamanan ponsel terbaru dengan judul berbeda:\n(1) 'Pengembang Rilis Pembaruan Keamanan Oktober 2026 untuk Menutup Celah Browser'\n(2) 'GEGER!! HP Kamu Bisa Meledak Besok Jika Tidak Klik Link Ini Sekarang Juga, Nomor 3 Bikin Merinding!'\n(3) 'Panduan Memperbarui Sistem Operasi Ponsel Secara Aman Melalui Menu Pengaturan'\n(4) 'Pakar Siber Imbau Pengguna Mengaktifkan Verifikasi Dua Langkah'",
+        soal: "Judul manakah yang menunjukkan ciri kuat CLICKBAIT dan manipulasi emosi pembaca?",
+        opsi: [
+          "Judul (1), karena menyebutkan bulan rilis pembaruan secara spesifik.",
+          "Judul (2), karena memakai huruf kapital berlebihan, ketakutan palsu, dan pancingan klik yang tidak proporsional.",
+          "Judul (3), karena memberikan panduan teknis yang jelas bagi pembaca.",
+          "Judul (4), karena mengutip imbauan narasumber pakar keamanan siber."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 25,
+        materi: 2,
+        topik: "Analisis Pesan Berantai & Hoaks",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Beredar pesan diteruskan berkali-kali di grup chat: 'INFO A1!! Mulai besok seluruh sekolah di Tanjungpinang diliburkan 2 minggu karena radiasi satelit. Jangan tanya sumbernya, langsung sebarkan ke minimal 5 grup sebelum pesan ini dihapus!!'",
+        soal: "Mengapa pesan tersebut sangat kuat terindikasi HOAKS dan bagaimana langkah verifikasi yang paling tepat?",
+        opsi: [
+          "Pesan itu pasti benar karena sudah diteruskan ke banyak grup dan memakai kata 'INFO A1'.",
+          "Cukup diteruskan ke grup kelas dulu, jika ternyata salah baru dihapus keesokan harinya.",
+          "Terindikasi hoaks karena tanpa sumber resmi, memicu kepanikan, dan memaksa penyebaran cepat; verifikasi harus dilakukan melalui kanal resmi sekolah/Dinas Pendidikan serta media pers kredibel.",
+          "Terindikasi hoaks hanya karena pesan tersebut tidak menyertakan foto atau video."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 26,
+        materi: 2,
+        topik: "Verifikasi Konten Manipulasi Konteks (False Context)",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Sebuah video banjir deras viral di media sosial dengan keterangan 'Tanjungpinang lumpuh total pagi ini!'. Saat diamati lebih teliti oleh murid kelas VII Alexandria, papan nama jalan dan kode pelat nomor kendaraan dalam video bukan berasal dari Kepulauan Riau, dan cuaca di Tanjungpinang saat itu cerah.",
+        soal: "Jenis kekeliruan informasi apa yang terjadi pada unggahan tersebut dan cara verifikasi digital apa yang paling efektif digunakan?",
+        opsi: [
+          "Berita jurnalistik terverifikasi; cukup dipercaya karena jumlah tontonannya sudah mencapai ratusan ribu.",
+          "Kesalahan perangkat keras kamera; solusinya meningkatkan kapasitas RAM pada ponsel penonton.",
+          "Opini resmi pemerintah daerah; solusinya cukup membaca kolom komentar netizen.",
+          "Konten dengan konteks salah (false context/daur ulang video lama atau lokasi lain); verifikasi dilakukan dengan pencarian gambar terbalik (reverse image search) pada tangkapan layar video dan cek berita resmi."
+        ],
+        jawabanBenar: 3
+      },
+      {
+        id: 27,
+        materi: 2,
+        topik: "Perbedaan Disinformasi dan Misinformasi",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Seseorang sengaja mengarang berita palsu tentang 'air garam menyembuhkan semua kerusakan baterai HP' demi memancing ribuan penonton dan iklan. Seorang warga yang tidak tahu bahwa itu palsu ikut membagikan video tersebut ke grup keluarga karena tulus ingin membantu.",
+        soal: "Evaluasi istilah literasi digital yang paling tepat untuk menggambarkan tindakan pembuat video dan tindakan warga yang ikut membagikan secara berturut-turut adalah...",
+        opsi: [
+          "Pembuat video melakukan disinformasi (sengaja menyesatkan), sedangkan warga melakukan misinformasi (keliru menyebarkan tanpa niat menipu).",
+          "Keduanya melakukan jurnalisme investigasi yang sah menurut etika pers digital.",
+          "Pembuat video melakukan verifikasi fakta, sedangkan warga melakukan peretasan jaringan.",
+          "Pembuat video melakukan misinformasi, sedangkan warga melakukan enkripsi data."
+        ],
+        jawabanBenar: 0
+      },
+      {
+        id: 28,
+        materi: 2,
+        topik: "Ekosistem Media Pers Digital Terverifikasi",
+        level: "HOTS • C4 (Analisis)",
+        stimulus: "Dua situs berita menyajikan informasi berbeda tentang jadwal asesmen:\n• Situs Alpha: mencantumkan nama jurnalis, alamat kantor redaksi, hak jawab, terdaftar resmi di Dewan Pers, dan mengutip narasumber resmi yang dapat dikonfirmasi.\n• Situs Beta: tidak memiliki halaman profil redaksi, penulis hanya tertulis 'Admin', judul provokatif, dan tidak mencantumkan sumber pernyataan.",
+        soal: "Berdasarkan standar ekosistem media pers digital, mengapa informasi dari Situs Alpha jauh lebih layak dipercaya daripada Situs Beta?",
+        opsi: [
+          "Karena Situs Alpha menggunakan warna tampilan yang lebih mencolok dibandingkan Situs Beta.",
+          "Karena Situs Alpha memenuhi kaidah akuntabilitas pers (identitas redaksi jelas, verifikasi narasumber, dan tunduk pada kode etik jurnalistik).",
+          "Karena Situs Beta pasti dibuat di luar negeri sehingga bahasanya sulit dibaca.",
+          "Karena Situs Alpha tidak memiliki kolom pencarian di dalam situsnya."
+        ],
+        jawabanBenar: 1
+      },
+      {
+        id: 29,
+        materi: 2,
+        topik: "Algoritma Media & Filter Bubble",
+        level: "HOTS • C5 (Evaluasi)",
+        stimulus: "Setelah menyukai dan menonton beberapa video yang hanya menyalahkan satu pihak dalam sebuah isu lingkungan, seluruh beranda media sosial seorang murid terus-menerus merekomendasikan video bersudut pandang sama sehingga ia yakin tidak ada pandangan lain.",
+        soal: "Fenomena apa yang sedang dialami murid tersebut dan strategi literasi digital apa yang paling tepat untuk mengatasinya?",
+        opsi: [
+          "Gangguan kabel LAN; solusinya me-restart router Wi-Fi di rumah.",
+          "Infeksi virus komputer; solusinya memformat ulang seluruh penyimpanan ponsel.",
+          "Gelembung filter (filter bubble) akibat algoritma rekomendasi; solusinya aktif mencari berita pembanding dari berbagai media kredibel dan memeriksa data secara kritis.",
+          "Kebocoran alamat IP; solusinya berhenti membaca semua berita pendidikan selamanya."
+        ],
+        jawabanBenar: 2
+      },
+      {
+        id: 30,
+        materi: 2,
+        topik: "Etika Digital & Saring Sebelum Sharing",
+        level: "HOTS • C6 (Pemecahan Masalah)",
+        stimulus: "Di grup obrolan beredar tangkapan layar yang menuduh salah satu murid kelas VII Granada merusak komputer lab tanpa bukti yang valid, disertai ajakan menyebarkan foto wajahnya ke media sosial.",
+        soal: "Tindakan paling bertanggung jawab yang mencerminkan literasi digital dan etika berinternet yang baik adalah...",
+        opsi: [
+          "Langsung ikut mengunggah foto tersebut di status media sosial agar ramai dikomentari.",
+          "Mengubah isi tangkapan layar menjadi lebih dramatis lalu meneruskannya ke kelas lain.",
+          "Meninggalkan komentar ejekan di grup agar terlihat mendukung teman yang menyebarkan kabar.",
+          "Tidak ikut menyebarkan tuduhan yang belum terverifikasi, mengingatkan teman tentang dampak pencemaran nama baik & jejak digital, serta melaporkannya kepada guru untuk klarifikasi resmi."
+        ],
+        jawabanBenar: 3
+      }
+    ];
+
+    /* =====================================================================
+     * BAGIAN C: MESIN UTAMA APLIKASI CBT (TIDAK PERLU DIUBAH)
+     * ===================================================================== */
+    const STORAGE_KEY = "cbt_informatika7_hots30_almadinah_v5";
+
+    const state = {
+      active: false,
+      submitted: false,
+      locked: false,
+      studentName: "",
+      studentClass: "",
+      startTimeISO: null,
+      remainingSeconds: KONFIGURASI_UJIAN.durasiMenit * 60,
+      answers: {},       // { questionId: optionIndex }
+      flags: {},         // { questionId: true }
+      currentIndex: 0,   // 0 .. DATA_SOAL.length - 1
+      violations: 0,
+      violationLogs: [],
+      lastViolationTs: 0,
+      timerInterval: null,
+      audioCtx: null,
+      lastResultPayload: null
+    };
+
+    const el = {
+      loginScreen: document.getElementById("loginScreen"),
+      examScreen: document.getElementById("examScreen"),
+      resultScreen: document.getElementById("resultScreen"),
+      loadingOverlay: document.getElementById("loadingOverlay"),
+      loadingTitle: document.getElementById("loadingTitle"),
+      loadingSubtitle: document.getElementById("loadingSubtitle"),
+      loadingBar: document.getElementById("loadingBar"),
+
+      warningModal: document.getElementById("warningModal"),
+      warningCountBadge: document.getElementById("warningCountBadge"),
+      warningReasonText: document.getElementById("warningReasonText"),
+      warningTimeText: document.getElementById("warningTimeText"),
+      warningRemainingText: document.getElementById("warningRemainingText"),
+      btnResumeAfterWarning: document.getElementById("btnResumeAfterWarning"),
+
+      lockModal: document.getElementById("lockModal"),
+      inputPinPengawas: document.getElementById("inputPinPengawas"),
+      pinErrorMsg: document.getElementById("pinErrorMsg"),
+      btnUnlockExam: document.getElementById("btnUnlockExam"),
+      btnForceSubmit: document.getElementById("btnForceSubmit"),
+
+      confirmSubmitModal: document.getElementById("confirmSubmitModal"),
+      submitSummaryBox: document.getElementById("submitSummaryBox"),
+      btnCancelSubmit: document.getElementById("btnCancelSubmit"),
+      btnConfirmSubmit: document.getElementById("btnConfirmSubmit"),
+
+      loginForm: document.getElementById("loginForm"),
+      inputNama: document.getElementById("inputNama"),
+      selectKelas: document.getElementById("selectKelas"),
+      inputToken: document.getElementById("inputToken"),
+      checkSetuju: document.getElementById("checkSetuju"),
+      loginError: document.getElementById("loginError"),
+      resumeSessionBanner: document.getElementById("resumeSessionBanner"),
+      resumeSessionDetail: document.getElementById("resumeSessionDetail"),
+      btnResumeSaved: document.getElementById("btnResumeSaved"),
+      btnDiscardSaved: document.getElementById("btnDiscardSaved"),
+
+      headerStudentName: document.getElementById("headerStudentName"),
+      headerStudentClass: document.getElementById("headerStudentClass"),
+      headerProgressBar: document.getElementById("headerProgressBar"),
+      badgeViolations: document.getElementById("badgeViolations"),
+      violationCounterText: document.getElementById("violationCounterText"),
+      badgeTimer: document.getElementById("badgeTimer"),
+      timerText: document.getElementById("timerText"),
+      btnToggleFullscreen: document.getElementById("btnToggleFullscreen"),
+
+      tabMateri1: document.getElementById("tabMateri1"),
+      tabMateri2: document.getElementById("tabMateri2"),
+      badgeMateri1Progress: document.getElementById("badgeMateri1Progress"),
+      badgeMateri2Progress: document.getElementById("badgeMateri2Progress"),
+      activeMateriBadge: document.getElementById("activeMateriBadge"),
+      activeMateriHeading: document.getElementById("activeMateriHeading"),
+      statTotalAnswered: document.getElementById("statTotalAnswered"),
+      statTotalFlagged: document.getElementById("statTotalFlagged"),
+
+      qNumberLabel: document.getElementById("qNumberLabel"),
+      qLevelBadge: document.getElementById("qLevelBadge"),
+      qTopicTag: document.getElementById("qTopicTag"),
+      qStimulusBox: document.getElementById("qStimulusBox"),
+      qStimulusLabel: document.getElementById("qStimulusLabel"),
+      qStimulusText: document.getElementById("qStimulusText"),
+      qQuestionText: document.getElementById("qQuestionText"),
+      qOptionsContainer: document.getElementById("qOptionsContainer"),
+      qNavGrid1: document.getElementById("qNavGrid1"),
+      qNavGrid2: document.getElementById("qNavGrid2"),
+      navProgressPct: document.getElementById("navProgressPct"),
+      btnToggleFlag: document.getElementById("btnToggleFlag"),
+      flagBtnText: document.getElementById("flagBtnText"),
+      btnPrevQ: document.getElementById("btnPrevQ"),
+      btnNextQ: document.getElementById("btnNextQ"),
+      btnOpenSubmitModal: document.getElementById("btnOpenSubmitModal"),
+      btnMobileSubmit: document.getElementById("btnMobileSubmit"),
+      mobileTotalProgress: document.getElementById("mobileTotalProgress"),
+
+      sheetStatusBox: document.getElementById("sheetStatusBox"),
+      sheetStatusText: document.getElementById("sheetStatusText"),
+      btnRetrySheet: document.getElementById("btnRetrySheet"),
+      barMateri1Fill: document.getElementById("barMateri1Fill"),
+      barTotalFill: document.getElementById("barTotalFill"),
+      barMateri2Fill: document.getElementById("barMateri2Fill"),
+      pillMateri1Val: document.getElementById("pillMateri1Val"),
+      pillMateri2Val: document.getElementById("pillMateri2Val"),
+      resFinalScore: document.getElementById("resFinalScore"),
+      resTotalBenarDetail: document.getElementById("resTotalBenarDetail"),
+      resPredicateBadge: document.getElementById("resPredicateBadge"),
+      resMateri1Score: document.getElementById("resMateri1Score"),
+      resMateri2Score: document.getElementById("resMateri2Score"),
+      resNama: document.getElementById("resNama"),
+      resKelas: document.getElementById("resKelas"),
+      resWaktu: document.getElementById("resWaktu"),
+      resPelanggaran: document.getElementById("resPelanggaran"),
+      resLogContainer: document.getElementById("resLogContainer"),
+      resLogList: document.getElementById("resLogList"),
+      btnCopyReceipt: document.getElementById("btnCopyReceipt"),
+      btnDownloadReceipt: document.getElementById("btnDownloadReceipt"),
+      copyToast: document.getElementById("copyToast"),
+      btnNewSession: document.getElementById("btnNewSession")
+    };
+
+    function getMateriLists() {
+      const m1 = DATA_SOAL.filter((q) => q.materi === 1);
+      const m2 = DATA_SOAL.filter((q) => q.materi === 2);
+      return { m1, m2 };
+    }
+
+    /* ---------------------------------------------------------------------
+     * INISIALISASI AWAL & LOGO
+     * --------------------------------------------------------------------- */
+    function setupLogo(imgId, fallbackId) {
+      const img = document.getElementById(imgId);
+      const fb = document.getElementById(fallbackId);
+      if (!img || !fb) return;
+      const customLogo = (KONFIGURASI_UJIAN.logoPath || "").trim();
+      img.onerror = () => {
+        img.classList.add("hidden");
+        fb.classList.remove("hidden");
+      };
+      img.onload = () => {
+        img.classList.remove("hidden");
+        fb.classList.add("hidden");
+      };
+      img.src = customLogo || LOGO_SEKOLAH_BAWAAN;
+    }
+
+    function initApp() {
+      document.getElementById("txtNamaSekolahLogin").textContent = KONFIGURASI_UJIAN.namaSekolah;
+      document.getElementById("txtJudulUjianLogin").textContent = KONFIGURASI_UJIAN.judulUjian;
+      document.getElementById("txtSubJudulLogin").textContent = KONFIGURASI_UJIAN.subJudul;
+      document.getElementById("resSchoolTitle").textContent = KONFIGURASI_UJIAN.namaSekolah;
+      document.getElementById("infoDurasi").textContent = `${KONFIGURASI_UJIAN.durasiMenit} Menit`;
+      document.getElementById("infoJumlahSoal").textContent = `${DATA_SOAL.length} HOTS`;
+      document.getElementById("infoBatasPelanggaran").textContent = `Maks ${KONFIGURASI_UJIAN.batasPelanggaran}x`;
+
+      setupLogo("schoolLogoLogin", "schoolLogoFallbackLogin");
+      setupLogo("schoolLogoHeader", "schoolLogoFallbackHeader");
+      setupLogo("schoolLogoResult", "schoolLogoFallbackResult");
+
+      KONFIGURASI_UJIAN.daftarKelas.forEach((kls) => {
+        const opt = document.createElement("option");
+        opt.value = kls;
+        opt.textContent = kls;
+        el.selectKelas.appendChild(opt);
+      });
+
+      checkSavedSession();
+      bindEvents();
+    }
+
+    /* ---------------------------------------------------------------------
+     * AUDIO ALARM PERINGATAN (WEB AUDIO API)
+     * --------------------------------------------------------------------- */
+    function initAudioContext() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!state.audioCtx && AudioCtx) state.audioCtx = new AudioCtx();
+        if (state.audioCtx && state.audioCtx.state === "suspended") state.audioCtx.resume();
+      } catch (e) {}
+    }
+
+    function playWarningAlarm() {
+      try {
+        initAudioContext();
+        if (!state.audioCtx) return;
+        const now = state.audioCtx.currentTime;
+        [0, 0.22, 0.44].forEach((offset) => {
+          const osc = state.audioCtx.createOscillator();
+          const gain = state.audioCtx.createGain();
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(880, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(620, now + offset + 0.16);
+          gain.gain.setValueAtTime(0.22, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.18);
+          osc.connect(gain);
+          gain.connect(state.audioCtx.destination);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.19);
+        });
+      } catch (e) {}
+    }
+
+    /* ---------------------------------------------------------------------
+     * LOADING OVERLAY & FULLSCREEN
+     * --------------------------------------------------------------------- */
+    function showLoading(title, subtitle, durationMs = 1400) {
+      return new Promise((resolve) => {
+        el.loadingTitle.textContent = title;
+        el.loadingSubtitle.textContent = subtitle;
+        el.loadingBar.classList.remove("animate-progress");
+        void el.loadingBar.offsetWidth;
+        el.loadingBar.classList.add("animate-progress");
+        el.loadingOverlay.classList.remove("hidden");
+        setTimeout(() => {
+          el.loadingOverlay.classList.add("hidden");
+          resolve();
+        }, durationMs);
+      });
+    }
+
+    async function enterFullscreen() {
+      try {
+        const docEl = document.documentElement;
+        if (!document.fullscreenElement) {
+          if (docEl.requestFullscreen) await docEl.requestFullscreen();
+          else if (docEl.webkitRequestFullscreen) await docEl.webkitRequestFullscreen();
+        }
+      } catch (err) {}
+    }
+
+    async function exitFullscreenSafe() {
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+      } catch (err) {}
+    }
+
+    /* ---------------------------------------------------------------------
+     * AUTO-SAVE LOKAL (LOCALSTORAGE)
+     * --------------------------------------------------------------------- */
+    function saveStateToLocal() {
+      if (!state.active || state.submitted) return;
+      const snapshot = {
+        studentName: state.studentName,
+        studentClass: state.studentClass,
+        startTimeISO: state.startTimeISO,
+        remainingSeconds: state.remainingSeconds,
+        answers: state.answers,
+        flags: state.flags,
+        currentIndex: state.currentIndex,
+        violations: state.violations,
+        violationLogs: state.violationLogs,
+        locked: state.locked
+      };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot)); } catch (e) {}
+    }
+
+    function clearSavedSession() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    }
+
+    function checkSavedSession() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved && saved.studentName && saved.remainingSeconds > 0) {
+          const answeredCount = Object.keys(saved.answers || {}).length;
+          el.resumeSessionDetail.textContent = `${saved.studentName} (${saved.studentClass}) • Terjawab ${answeredCount}/${DATA_SOAL.length} • Sisa ${formatTime(saved.remainingSeconds)}`;
+          el.resumeSessionBanner.classList.remove("hidden");
+        }
+      } catch (e) {}
+    }
+
+    /* ---------------------------------------------------------------------
+     * MULAI / LANJUTKAN UJIAN
+     * --------------------------------------------------------------------- */
+    async function startExam(isResume = false, savedData = null) {
+      initAudioContext();
+      await enterFullscreen();
+
+      await showLoading(
+        isResume ? "Memulihkan Sesi Ujian..." : "Menyiapkan Ruang CBT...",
+        `Mengaktifkan pengawasan anti-pindah tab & memuat ${DATA_SOAL.length} soal HOTS.`,
+        1400
+      );
+
+      if (isResume && savedData) {
+        state.studentName = savedData.studentName;
+        state.studentClass = savedData.studentClass;
+        state.startTimeISO = savedData.startTimeISO;
+        state.remainingSeconds = savedData.remainingSeconds;
+        state.answers = savedData.answers || {};
+        state.flags = savedData.flags || {};
+        state.currentIndex = Math.min(DATA_SOAL.length - 1, Math.max(0, savedData.currentIndex || 0));
+        state.violations = savedData.violations || 0;
+        state.violationLogs = savedData.violationLogs || [];
+        state.locked = !!savedData.locked;
+      } else {
+        state.startTimeISO = new Date().toISOString();
+        state.remainingSeconds = KONFIGURASI_UJIAN.durasiMenit * 60;
+        state.answers = {};
+        state.flags = {};
+        state.currentIndex = 0;
+        state.violations = 0;
+        state.violationLogs = [];
+        state.locked = false;
+      }
+
+      state.active = true;
+      state.submitted = false;
+      state.lastViolationTs = Date.now();
+
+      const firstName = state.studentName.split(" ")[0];
+      el.headerStudentName.textContent = firstName;
+      el.headerStudentClass.textContent = state.studentClass;
+
+      el.loginScreen.classList.add("hidden");
+      el.resultScreen.classList.add("hidden");
+      el.examScreen.classList.remove("hidden");
+
+      try { history.pushState({ cbtExam: true }, "", location.href); } catch (e) {}
+
+      renderQuestion();
+      updateViolationBadge();
+      updateAllProgress();
+      startTimer();
+      saveStateToLocal();
+
+      if (state.locked) showLockModal();
+    }
+
+    /* ---------------------------------------------------------------------
+     * TIMER HITUNG MUNDUR
+     * --------------------------------------------------------------------- */
+    function formatTime(totalSec) {
+      const m = Math.floor(Math.max(0, totalSec) / 60);
+      const s = Math.max(0, totalSec) % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function startTimer() {
+      clearInterval(state.timerInterval);
+      el.timerText.textContent = formatTime(state.remainingSeconds);
+
+      state.timerInterval = setInterval(() => {
+        if (!state.active || state.submitted) {
+          clearInterval(state.timerInterval);
+          return;
+        }
+        state.remainingSeconds--;
+        el.timerText.textContent = formatTime(state.remainingSeconds);
+
+        if (state.remainingSeconds <= 180) {
+          el.badgeTimer.className = "px-3.5 py-1.5 rounded-full bg-rose-600 text-white text-xs sm:text-sm font-bold font-mono flex items-center gap-1.5 animate-pulse";
+        } else if (state.remainingSeconds <= 600) {
+          el.badgeTimer.className = "px-3.5 py-1.5 rounded-full bg-butter-card text-ink text-xs sm:text-sm font-bold font-mono flex items-center gap-1.5";
+        }
+
+        if (state.remainingSeconds % 5 === 0) saveStateToLocal();
+
+        if (state.remainingSeconds <= 0) {
+          clearInterval(state.timerInterval);
+          submitExam("Waktu ujian habis (Auto-Submit)");
+        }
+      }, 1000);
+    }
+
+    /* ---------------------------------------------------------------------
+     * KEAMANAN CBT & ANTI-CURANG
+     * --------------------------------------------------------------------- */
+    function getCurrentTimeWIB() {
+      return new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }) + " WIB";
+    }
+
+    function recordViolation(reason) {
+      if (!state.active || state.submitted || state.locked) return;
+
+      const now = Date.now();
+      if (now - state.lastViolationTs < 3000) return;
+      state.lastViolationTs = now;
+
+      state.violations++;
+      const timeStr = getCurrentTimeWIB();
+      state.violationLogs.push(`[${timeStr}] ${reason}`);
+
+      updateViolationBadge();
+      playWarningAlarm();
+      el.examScreen.classList.add("blurred-exam");
+
+      if (state.violations >= KONFIGURASI_UJIAN.batasPelanggaran) {
+        state.locked = true;
+        saveStateToLocal();
+        el.warningModal.classList.add("hidden");
+        showLockModal();
+      } else {
+        saveStateToLocal();
+        const remaining = KONFIGURASI_UJIAN.batasPelanggaran - state.violations;
+        el.warningCountBadge.textContent = `Pelanggaran ${state.violations} dari ${KONFIGURASI_UJIAN.batasPelanggaran}`;
+        el.warningReasonText.textContent = `Sistem mendeteksi: ${reason}. Murid dilarang membuka web/tab lain selama ujian berlangsung.`;
+        el.warningTimeText.textContent = timeStr;
+        el.warningRemainingText.textContent = `${remaining} kali lagi sebelum terkunci`;
+        el.warningModal.classList.remove("hidden");
+      }
+    }
+
+    function updateViolationBadge() {
+      el.violationCounterText.textContent = `${state.violations}/${KONFIGURASI_UJIAN.batasPelanggaran}`;
+      if (state.violations === 0) {
+        el.badgeViolations.className = "px-3 py-1.5 rounded-full bg-lavender-soft text-ink text-xs font-bold flex items-center gap-1.5";
+      } else if (state.violations < KONFIGURASI_UJIAN.batasPelanggaran) {
+        el.badgeViolations.className = "px-3 py-1.5 rounded-full bg-butter-card text-ink text-xs font-bold flex items-center gap-1.5";
+      } else {
+        el.badgeViolations.className = "px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1.5";
+      }
+    }
+
+    function showLockModal() {
+      el.examScreen.classList.add("blurred-exam");
+      el.inputPinPengawas.value = "";
+      el.pinErrorMsg.classList.add("hidden");
+      el.lockModal.classList.remove("hidden");
+    }
+
+    /* ---------------------------------------------------------------------
+     * RENDER SOAL HOTS & PANEL NAVIGASI 30 NOMOR
+     * --------------------------------------------------------------------- */
+    function renderQuestion() {
+      const q = DATA_SOAL[state.currentIndex];
+      if (!q) return;
+
+      const isMateri1 = q.materi === 1;
+
+      // Update Tab Switcher Materi Aktif
+      if (isMateri1) {
+        el.tabMateri1.className = "flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-ink text-white";
+        el.badgeMateri1Progress.className = "px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white shrink-0";
+        el.tabMateri2.className = "flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-muted hover:text-ink";
+        el.badgeMateri2Progress.className = "px-2 py-0.5 rounded-full text-[10px] bg-canvas text-ink shrink-0";
+        el.activeMateriBadge.className = "inline-block px-3 py-1 rounded-full bg-skycard-soft text-ink text-[11px] font-bold mb-1.5";
+        el.activeMateriBadge.textContent = "Materi 1 • Sistem & Jaringan Komputer Dasar";
+        el.activeMateriHeading.textContent = "Sistem & Jaringan Komputer";
+        el.qTopicTag.className = "inline-block px-3 py-1 rounded-full bg-skycard-soft text-ink text-[11px] font-bold";
+      } else {
+        el.tabMateri2.className = "flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-ink text-white";
+        el.badgeMateri2Progress.className = "px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white shrink-0";
+        el.tabMateri1.className = "flex-1 py-2 px-3 rounded-full text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 text-muted hover:text-ink";
+        el.badgeMateri1Progress.className = "px-2 py-0.5 rounded-full text-[10px] bg-canvas text-ink shrink-0";
+        el.activeMateriBadge.className = "inline-block px-3 py-1 rounded-full bg-mint-soft text-ink text-[11px] font-bold mb-1.5";
+        el.activeMateriBadge.textContent = "Materi 2 • Literasi Informasi & Analisis Media Digital";
+        el.activeMateriHeading.textContent = "Literasi & Media Digital";
+        el.qTopicTag.className = "inline-block px-3 py-1 rounded-full bg-mint-soft text-ink text-[11px] font-bold";
+      }
+
+      el.qNumberLabel.textContent = `Soal ${state.currentIndex + 1} dari ${DATA_SOAL.length}`;
+      el.qLevelBadge.textContent = q.level || "HOTS";
+      el.qTopicTag.textContent = q.topik || "Informatika";
+
+      // Stimulus / Kasus Box
+      if (q.stimulus && q.stimulus.trim()) {
+        el.qStimulusLabel.textContent = isMateri1 ? "Stimulus / Skenario Sistem & Jaringan" : "Stimulus / Kasus Literasi Media Digital";
+        el.qStimulusText.textContent = q.stimulus;
+        el.qStimulusBox.classList.remove("hidden");
+      } else {
+        el.qStimulusBox.classList.add("hidden");
+      }
+
+      el.qQuestionText.textContent = q.soal;
+
+      // Status Ragu-ragu
+      const isFlagged = !!state.flags[q.id];
+      if (isFlagged) {
+        el.btnToggleFlag.className = "px-3.5 py-2 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-butter-card text-ink shadow-sm";
+        el.flagBtnText.textContent = "Ditandai Ragu";
+      } else {
+        el.btnToggleFlag.className = "px-3.5 py-2 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-canvas text-muted hover:bg-butter-soft hover:text-ink";
+        el.flagBtnText.textContent = "Ragu-ragu";
+      }
+
+      // Render Opsi A, B, C, D
+      const letters = ["A", "B", "C", "D", "E"];
+      const chosen = state.answers[q.id];
+      el.qOptionsContainer.innerHTML = "";
+
+      q.opsi.forEach((optText, idx) => {
+        const isSelected = chosen === idx;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `w-full text-left p-3.5 rounded-2xl border-2 transition flex items-start gap-3 ${
+          isSelected
+            ? "bg-lavender-soft/65 border-ink text-ink shadow-sm"
+            : "bg-canvas border-transparent text-ink/90 hover:bg-lavender-soft/30"
+        }`;
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-full text-xs font-extrabold flex items-center justify-center shrink-0 ${
+            isSelected ? "bg-ink text-white" : "bg-white text-ink shadow-sm"
+          }">${letters[idx]}</span>
+          <span class="text-xs sm:text-sm font-medium leading-relaxed pt-0.5">${optText}</span>
+        `;
+        btn.addEventListener("click", () => {
+          state.answers[q.id] = idx;
+          renderQuestion();
+          updateAllProgress();
+          saveStateToLocal();
+        });
+        el.qOptionsContainer.appendChild(btn);
+      });
+
+      // Tombol Sebelumnya / Berikutnya
+      el.btnPrevQ.disabled = state.currentIndex === 0;
+      if (state.currentIndex === DATA_SOAL.length - 1) {
+        el.btnNextQ.textContent = "Cek & Kumpulkan →";
+      } else {
+        el.btnNextQ.textContent = "Berikutnya →";
+      }
+
+      renderNavGrids();
+    }
+
+    function renderNavGrids() {
+      el.qNavGrid1.innerHTML = "";
+      el.qNavGrid2.innerHTML = "";
+
+      DATA_SOAL.forEach((item, idx) => {
+        const answered = state.answers[item.id] !== undefined;
+        const flagged = !!state.flags[item.id];
+        const active = idx === state.currentIndex;
+
+        let colorClass = "bg-canvas text-ink/70 hover:bg-lavender-soft/60";
+        if (flagged) {
+          colorClass = "bg-butter-card text-ink font-extrabold";
+        } else if (answered) {
+          colorClass = "bg-[#64C49B] text-white font-extrabold";
+        }
+
+        const ringClass = active ? "ring-2 ring-ink ring-offset-2" : "";
+
+        const navBtn = document.createElement("button");
+        navBtn.type = "button";
+        navBtn.textContent = idx + 1;
+        navBtn.className = `aspect-square w-full max-w-[40px] mx-auto rounded-full text-xs font-bold transition flex items-center justify-center ${colorClass} ${ringClass}`;
+        navBtn.addEventListener("click", () => {
+          state.currentIndex = idx;
+          renderQuestion();
+          saveStateToLocal();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        if (item.materi === 1) el.qNavGrid1.appendChild(navBtn);
+        else el.qNavGrid2.appendChild(navBtn);
+      });
+    }
+
+    function jumpToMateri(materiNum) {
+      // Lompat ke soal pertama yang belum dijawab pada materi tersebut, atau soal pertama materi tsb
+      let targetIdx = DATA_SOAL.findIndex((q) => q.materi === materiNum && state.answers[q.id] === undefined);
+      if (targetIdx === -1) {
+        targetIdx = DATA_SOAL.findIndex((q) => q.materi === materiNum);
+      }
+      if (targetIdx !== -1) {
+        state.currentIndex = targetIdx;
+        renderQuestion();
+        saveStateToLocal();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    function updateAllProgress() {
+      const { m1, m2 } = getMateriLists();
+      const done1 = m1.filter((q) => state.answers[q.id] !== undefined).length;
+      const done2 = m2.filter((q) => state.answers[q.id] !== undefined).length;
+      const totalDone = done1 + done2;
+      const totalAll = DATA_SOAL.length;
+      const flaggedCount = Object.values(state.flags).filter(Boolean).length;
+      const pct = Math.round((totalDone / Math.max(1, totalAll)) * 100);
+
+      el.badgeMateri1Progress.textContent = `${done1}/${m1.length}`;
+      el.badgeMateri2Progress.textContent = `${done2}/${m2.length}`;
+      el.statTotalAnswered.textContent = `${totalDone} / ${totalAll}`;
+      el.statTotalFlagged.textContent = `${flaggedCount} Soal`;
+      el.mobileTotalProgress.textContent = `${totalDone}/${totalAll}`;
+      el.navProgressPct.textContent = `${pct}%`;
+      el.headerProgressBar.style.width = `${pct}%`;
+    }
+
+    /* ---------------------------------------------------------------------
+     * PERHITUNGAN SKOR & PENGUMPULAN UJIAN
+     * --------------------------------------------------------------------- */
+    function openSubmitConfirmation() {
+      const { m1, m2 } = getMateriLists();
+      const done1 = m1.filter((q) => state.answers[q.id] !== undefined).length;
+      const done2 = m2.filter((q) => state.answers[q.id] !== undefined).length;
+      const flaggedCount = Object.values(state.flags).filter(Boolean).length;
+      const missing1 = m1.length - done1;
+      const missing2 = m2.length - done2;
+
+      el.submitSummaryBox.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="text-muted">Materi 1 (Sistem &amp; Jaringan)</span>
+          <span class="px-2.5 py-0.5 rounded-full font-bold ${missing1 === 0 ? "bg-mint-soft text-ink" : "bg-butter-soft text-ink"}">${done1} / ${m1.length}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-muted">Materi 2 (Literasi Digital)</span>
+          <span class="px-2.5 py-0.5 rounded-full font-bold ${missing2 === 0 ? "bg-mint-soft text-ink" : "bg-butter-soft text-ink"}">${done2} / ${m2.length}</span>
+        </div>
+        ${flaggedCount > 0 ? `<div class="text-butter-deep font-semibold pt-1">🚩 Masih ada ${flaggedCount} soal ditandai ragu-ragu.</div>` : ""}
+        ${(missing1 > 0 || missing2 > 0) ? `<div class="text-rose-600 font-semibold pt-1">⚠️ Masih ada ${missing1 + missing2} soal kosong. Yakin ingin kumpulkan?</div>` : `<div class="text-mint-deep font-bold pt-1">✓ Seluruh ${DATA_SOAL.length} soal HOTS sudah terjawab lengkap!</div>`}
+      `;
+      el.confirmSubmitModal.classList.remove("hidden");
+    }
+
+    async function submitExam(note = "Selesai normal") {
+      if (state.submitted) return;
+      state.submitted = true;
+      state.active = false;
+      clearInterval(state.timerInterval);
+
+      el.confirmSubmitModal.classList.add("hidden");
+      el.warningModal.classList.add("hidden");
+      el.lockModal.classList.add("hidden");
+      el.examScreen.classList.remove("blurred-exam");
+
+      await showLoading(
+        "Menghitung Nilai HOTS...",
+        "Merekap jawaban dari 2 materi & menyusun laporan ujian CBT.",
+        1600
+      );
+
+      await exitFullscreenSafe();
+      clearSavedSession();
+
+      const { m1, m2 } = getMateriLists();
+      const benar1 = m1.filter((q) => state.answers[q.id] === q.jawabanBenar).length;
+      const benar2 = m2.filter((q) => state.answers[q.id] === q.jawabanBenar).length;
+      const totalBenar = benar1 + benar2;
+
+      const pct1 = m1.length > 0 ? Math.round((benar1 / m1.length) * 100) : 0;
+      const pct2 = m2.length > 0 ? Math.round((benar2 / m2.length) * 100) : 0;
+      const skorAkhir = DATA_SOAL.length > 0 ? Math.round((totalBenar / DATA_SOAL.length) * 100) : 0;
+
+      const waktuSelesai = new Date().toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }) + " WIB";
+
+      let predikat = "Perlu Bimbingan";
+      if (skorAkhir >= 90) predikat = "Sangat Baik (Mumtaz)";
+      else if (skorAkhir >= 78) predikat = "Baik (Tuntas)";
+      else if (skorAkhir >= 70) predikat = "Cukup";
+
+      // Update Grafik Kapsul Bergaris
+      el.barMateri1Fill.style.height = `${Math.max(46, pct1)}%`;
+      el.barMateri2Fill.style.height = `${Math.max(46, pct2)}%`;
+      el.barTotalFill.style.height = `${Math.max(48, skorAkhir)}%`;
+
+      el.pillMateri1Val.textContent = `${pct1}%`;
+      el.pillMateri2Val.textContent = `${pct2}%`;
+      el.resMateri1Score.textContent = `${benar1}/${m1.length}`;
+      el.resMateri2Score.textContent = `${benar2}/${m2.length}`;
+      el.resFinalScore.textContent = skorAkhir;
+      el.resTotalBenarDetail.textContent = `${totalBenar}/${DATA_SOAL.length} benar`;
+      el.resPredicateBadge.textContent = predikat;
+
+      el.resNama.textContent = state.studentName;
+      el.resKelas.textContent = state.studentClass;
+      el.resWaktu.textContent = waktuSelesai;
+
+      if (state.violations === 0) {
+        el.resPelanggaran.textContent = "Aman (0 Pelanggaran)";
+        el.resPelanggaran.className = "font-bold text-right text-mint-deep";
+        el.resLogContainer.classList.add("hidden");
+      } else {
+        el.resPelanggaran.textContent = `${state.violations} Kali Peringatan`;
+        el.resPelanggaran.className = "font-bold text-right text-rose-600";
+        el.resLogList.innerHTML = "";
+        state.violationLogs.forEach((log) => {
+          const li = document.createElement("li");
+          li.textContent = log;
+          el.resLogList.appendChild(li);
+        });
+        el.resLogContainer.classList.remove("hidden");
+      }
+
+      // Tetap kompatibel dengan Google Apps Script (kolom skorTahap1 = Nilai Materi 1, skorTahap2 = Nilai Materi 2)
+      state.lastResultPayload = {
+        nama: state.studentName,
+        kelas: state.studentClass,
+        skorTahap1: pct1,
+        skorTahap2: pct2,
+        skorAkhir: skorAkhir,
+        benarMateri1: `${benar1}/${m1.length}`,
+        benarMateri2: `${benar2}/${m2.length}`,
+        jumlahPelanggaran: state.violations,
+        logPelanggaran: state.violationLogs.length > 0 ? state.violationLogs : [note],
+        waktuSelesai: waktuSelesai
+      };
+
+      el.examScreen.classList.add("hidden");
+      el.resultScreen.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      sendToGoogleSheets(state.lastResultPayload);
+    }
+
+    async function sendToGoogleSheets(payload) {
+      const url = (KONFIGURASI_UJIAN.googleScriptUrl || "").trim();
+      el.btnRetrySheet.classList.add("hidden");
+
+      if (!url) {
+        el.sheetStatusBox.className = "rounded-2xl p-3.5 text-xs font-semibold flex items-center justify-between gap-2 bg-butter-soft text-ink";
+        el.sheetStatusText.textContent = "ℹ️ Mode Offline: Tunjukkan layar ini ke guru atau klik Salin / Unduh Bukti.";
+        return;
+      }
+
+      el.sheetStatusBox.className = "rounded-2xl p-3.5 text-xs font-semibold flex items-center justify-between gap-2 bg-skycard-soft text-ink";
+      el.sheetStatusText.textContent = "⏳ Mengirim nilai otomatis ke Google Sheets guru...";
+
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        el.sheetStatusBox.className = "rounded-2xl p-3.5 text-xs font-semibold flex items-center justify-between gap-2 bg-mint-soft text-ink";
+        el.sheetStatusText.textContent = "✓ Nilai & laporan pengawasan berhasil dikirim ke Google Sheets!";
+      } catch (err) {
+        el.sheetStatusBox.className = "rounded-2xl p-3.5 text-xs font-semibold flex items-center justify-between gap-2 bg-rose-100 text-rose-800";
+        el.sheetStatusText.textContent = "✕ Gagal mengirim (cek koneksi). Klik Kirim Ulang atau Salin Bukti.";
+        el.btnRetrySheet.classList.remove("hidden");
+      }
+    }
+
+    function buildReceiptText() {
+      const p = state.lastResultPayload;
+      if (!p) return "";
+      return [
+        "==========================================",
+        "BUKTI UJIAN PRAKTIK INFORMATIKA KELAS VII",
+        KONFIGURASI_UJIAN.namaSekolah,
+        "==========================================",
+        `Nama Murid              : ${p.nama}`,
+        `Kelas                   : ${p.kelas}`,
+        `Waktu Selesai           : ${p.waktuSelesai}`,
+        "------------------------------------------",
+        `Materi 1 (Sistem&Jar)   : ${p.benarMateri1} benar (${p.skorTahap1}%)`,
+        `Materi 2 (Literasi Dig) : ${p.benarMateri2} benar (${p.skorTahap2}%)`,
+        `NILAI AKHIR             : ${p.skorAkhir} / 100`,
+        "------------------------------------------",
+        `Pelanggaran CBT         : ${p.jumlahPelanggaran} kali`,
+        `Catatan Log             : ${p.logPelanggaran.join(" | ")}`,
+        "=========================================="
+      ].join("\n");
+    }
+
+    /* ---------------------------------------------------------------------
+     * EVENT LISTENERS
+     * --------------------------------------------------------------------- */
+    function bindEvents() {
+      el.loginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        el.loginError.classList.add("hidden");
+
+        const nama = el.inputNama.value.trim();
+        const kelas = el.selectKelas.value;
+        const token = el.inputToken.value.trim().toUpperCase();
+
+        if (nama.length < 3) {
+          el.loginError.textContent = "Masukkan nama lengkap murid dengan benar.";
+          el.loginError.classList.remove("hidden");
+          return;
+        }
+        if (!kelas) {
+          el.loginError.textContent = "Silakan pilih kelas terlebih dahulu.";
+          el.loginError.classList.remove("hidden");
+          return;
+        }
+        if (token !== KONFIGURASI_UJIAN.tokenUjian.trim().toUpperCase()) {
+          el.loginError.textContent = "Token ujian salah! Periksa kembali token dari guru pengawas.";
+          el.loginError.classList.remove("hidden");
+          return;
+        }
+
+        state.studentName = nama;
+        state.studentClass = kelas;
+        clearSavedSession();
+        startExam(false);
+      });
+
+      el.btnResumeSaved.addEventListener("click", () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (saved) startExam(true, saved);
+        } catch (e) {}
+      });
+      el.btnDiscardSaved.addEventListener("click", () => {
+        clearSavedSession();
+        el.resumeSessionBanner.classList.add("hidden");
+      });
+
+      el.tabMateri1.addEventListener("click", () => jumpToMateri(1));
+      el.tabMateri2.addEventListener("click", () => jumpToMateri(2));
+
+      el.btnPrevQ.addEventListener("click", () => {
+        if (state.currentIndex > 0) {
+          state.currentIndex--;
+          renderQuestion();
+          saveStateToLocal();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+
+      el.btnNextQ.addEventListener("click", () => {
+        if (state.currentIndex < DATA_SOAL.length - 1) {
+          state.currentIndex++;
+          renderQuestion();
+          saveStateToLocal();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          openSubmitConfirmation();
+        }
+      });
+
+      el.btnToggleFlag.addEventListener("click", () => {
+        const q = DATA_SOAL[state.currentIndex];
+        if (!q) return;
+        state.flags[q.id] = !state.flags[q.id];
+        renderQuestion();
+        updateAllProgress();
+        saveStateToLocal();
+      });
+
+      el.btnOpenSubmitModal.addEventListener("click", openSubmitConfirmation);
+      el.btnMobileSubmit.addEventListener("click", openSubmitConfirmation);
+      el.btnCancelSubmit.addEventListener("click", () => el.confirmSubmitModal.classList.add("hidden"));
+      el.btnConfirmSubmit.addEventListener("click", () => submitExam("Dikumpulkan oleh murid"));
+
+      el.btnToggleFullscreen.addEventListener("click", () => enterFullscreen());
+
+      el.btnResumeAfterWarning.addEventListener("click", async () => {
+        el.warningModal.classList.add("hidden");
+        el.examScreen.classList.remove("blurred-exam");
+        state.lastViolationTs = Date.now();
+        await enterFullscreen();
+      });
+
+      el.btnUnlockExam.addEventListener("click", async () => {
+        const pin = el.inputPinPengawas.value.trim();
+        if (pin === String(KONFIGURASI_UJIAN.pinPengawas)) {
+          state.locked = false;
+          state.violations = Math.max(0, KONFIGURASI_UJIAN.batasPelanggaran - 1);
+          state.violationLogs.push(`[${getCurrentTimeWIB()}] Dibuka kembali oleh Guru Pengawas`);
+          updateViolationBadge();
+          saveStateToLocal();
+          el.lockModal.classList.add("hidden");
+          el.examScreen.classList.remove("blurred-exam");
+          state.lastViolationTs = Date.now();
+          await enterFullscreen();
+        } else {
+          el.pinErrorMsg.classList.remove("hidden");
+        }
+      });
+
+      el.btnForceSubmit.addEventListener("click", () => {
+        submitExam("Auto-Submit dari layar terkunci CBT");
+      });
+
+      el.btnRetrySheet.addEventListener("click", () => {
+        if (state.lastResultPayload) sendToGoogleSheets(state.lastResultPayload);
+      });
+
+      el.btnCopyReceipt.addEventListener("click", async () => {
+        const text = buildReceiptText();
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch (e) {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+        el.copyToast.classList.remove("hidden");
+        setTimeout(() => el.copyToast.classList.add("hidden"), 3000);
+      });
+
+      el.btnDownloadReceipt.addEventListener("click", () => {
+        const text = buildReceiptText();
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const safeName = (state.studentName || "murid").replace(/[^a-zA-Z0-9]/g, "_");
+        a.href = url;
+        a.download = `Bukti_Ujian_Informatika_VII_${safeName}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      el.btnNewSession.addEventListener("click", () => location.reload());
+
+      /* LISTENER KEAMANAN CBT */
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && state.active && !state.submitted) {
+          recordViolation("Berpindah tab atau membuka aplikasi lain");
+        }
+      });
+
+      window.addEventListener("blur", () => {
+        if (state.active && !state.submitted) {
+          recordViolation("Keluar dari fokus layar ujian / membuka jendela lain");
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement && state.active && !state.submitted) {
+          recordViolation("Keluar dari mode Layar Penuh (Fullscreen)");
+        }
+      });
+
+      ["contextmenu", "copy", "cut", "paste"].forEach((evt) => {
+        document.addEventListener(evt, (e) => {
+          if (state.active && !state.submitted) e.preventDefault();
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (!state.active || state.submitted) return;
+        const key = e.key.toLowerCase();
+        if (
+          e.key === "F12" ||
+          (e.ctrlKey && ["c", "v", "x", "u", "s", "p"].includes(key)) ||
+          (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key))
+        ) {
+          e.preventDefault();
+        }
+      });
+
+      window.addEventListener("popstate", () => {
+        if (state.active && !state.submitted) {
+          history.pushState({ cbtExam: true }, "", location.href);
+          recordViolation("Menekan tombol Kembali (Back) saat ujian aktif");
+        }
+      });
+
+      window.addEventListener("beforeunload", (e) => {
+        if (state.active && !state.submitted) {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      });
+    }
+
+    /* =====================================================================
+     * BAGIAN D: LOGO RESMI SMPIT AL MADINAH (TERTANAM OTOMATIS — BASE64 PNG)
+     * ===================================================================== */
+    const LOGO_SEKOLAH_BAWAAN = "data:image/png;base64,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";
+
+    document.addEventListener("DOMContentLoaded", initApp);
+  </script>
+</body>
+</html>
