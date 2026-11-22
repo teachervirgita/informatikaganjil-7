@@ -769,7 +769,8 @@
       pinPengawas: "123456",     // PIN guru untuk membuka layar jika terkunci
       durasiMenit: 60,           // Durasi pengerjaan (dalam menit)
       batasPelanggaran: 3,       // Jumlah pindah tab / keluar fullscreen sebelum terkunci otomatis
-      googleScriptUrl: ""        // Tempel URL Web App Google Apps Script (/exec) di sini jika sudah dibuat
+      intervalPantauanDetik: 25, // Jeda update progres otomatis ke Google Sheets (detik) saat murid mengerjakan
+      googleScriptUrl: ""        // Tempel URL Web App Google Apps Script (/exec) di sini untuk Pantauan Live & Rekap Nilai
     };
 
     /* =====================================================================
@@ -1244,12 +1245,13 @@
     /* =====================================================================
      * BAGIAN C: MESIN UTAMA APLIKASI CBT (TIDAK PERLU DIUBAH)
      * ===================================================================== */
-    const STORAGE_KEY = "cbt_informatika7_hots30_almadinah_v5";
+    const STORAGE_KEY = "cbt_informatika7_hots30_almadinah_v6";
 
     const state = {
       active: false,
       submitted: false,
       locked: false,
+      sessionId: "",
       studentName: "",
       studentClass: "",
       startTimeISO: null,
@@ -1261,6 +1263,7 @@
       violationLogs: [],
       lastViolationTs: 0,
       timerInterval: null,
+      liveSyncInterval: null,
       audioCtx: null,
       lastResultPayload: null
     };
@@ -1486,6 +1489,7 @@
     function saveStateToLocal() {
       if (!state.active || state.submitted) return;
       const snapshot = {
+        sessionId: state.sessionId,
         studentName: state.studentName,
         studentClass: state.studentClass,
         startTimeISO: state.startTimeISO,
@@ -1531,6 +1535,7 @@
       );
 
       if (isResume && savedData) {
+        state.sessionId = savedData.sessionId || generateSessionId();
         state.studentName = savedData.studentName;
         state.studentClass = savedData.studentClass;
         state.startTimeISO = savedData.startTimeISO;
@@ -1542,6 +1547,7 @@
         state.violationLogs = savedData.violationLogs || [];
         state.locked = !!savedData.locked;
       } else {
+        state.sessionId = generateSessionId();
         state.startTimeISO = new Date().toISOString();
         state.remainingSeconds = KONFIGURASI_UJIAN.durasiMenit * 60;
         state.answers = {};
@@ -1571,6 +1577,7 @@
       updateAllProgress();
       startTimer();
       saveStateToLocal();
+      startLiveSync(isResume ? "🔵 Lanjutkan Ujian" : "🔵 Mulai Ujian");
 
       if (state.locked) showLockModal();
     }
@@ -1640,10 +1647,12 @@
       if (state.violations >= KONFIGURASI_UJIAN.batasPelanggaran) {
         state.locked = true;
         saveStateToLocal();
+        sendLiveStatus("🔴 TERKUNCI");
         el.warningModal.classList.add("hidden");
         showLockModal();
       } else {
         saveStateToLocal();
+        sendLiveStatus("🟡 Peringatan CBT");
         const remaining = KONFIGURASI_UJIAN.batasPelanggaran - state.violations;
         el.warningCountBadge.textContent = `Pelanggaran ${state.violations} dari ${KONFIGURASI_UJIAN.batasPelanggaran}`;
         el.warningReasonText.textContent = `Sistem mendeteksi: ${reason}. Murid dilarang membuka web/tab lain selama ujian berlangsung.`;
@@ -1863,6 +1872,7 @@
       state.submitted = true;
       state.active = false;
       clearInterval(state.timerInterval);
+      stopLiveSync();
 
       el.confirmSubmitModal.classList.add("hidden");
       el.warningModal.classList.add("hidden");
@@ -1930,13 +1940,21 @@
         el.resLogContainer.classList.remove("hidden");
       }
 
-      // Tetap kompatibel dengan Google Apps Script (kolom skorTahap1 = Nilai Materi 1, skorTahap2 = Nilai Materi 2)
+      const totalTerjawab = Object.keys(state.answers).length;
       state.lastResultPayload = {
+        type: "final",
+        sessionId: state.sessionId,
         nama: state.studentName,
         kelas: state.studentClass,
+        status: "🟢 Selesai",
+        terjawab: `${totalTerjawab}/${DATA_SOAL.length}`,
+        persenProgres: `${Math.round((totalTerjawab / Math.max(1, DATA_SOAL.length)) * 100)}%`,
+        soalAktif: "Selesai",
+        sisaWaktu: formatTime(state.remainingSeconds),
         skorTahap1: pct1,
         skorTahap2: pct2,
         skorAkhir: skorAkhir,
+        predikat: predikat,
         benarMateri1: `${benar1}/${m1.length}`,
         benarMateri2: `${benar2}/${m2.length}`,
         jumlahPelanggaran: state.violations,
@@ -1949,6 +1967,74 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       sendToGoogleSheets(state.lastResultPayload);
+    }
+
+    /* ---------------------------------------------------------------------
+     * PANTAUAN LIVE KE GOOGLE SHEETS (PROGRES REAL-TIME SELAMA UJIAN)
+     * --------------------------------------------------------------------- */
+    function generateSessionId() {
+      return "CBT-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+    }
+
+    function sendLiveStatus(customStatus = null) {
+      const url = (KONFIGURASI_UJIAN.googleScriptUrl || "").trim();
+      if (!url || !state.studentName) return;
+
+      const totalDone = Object.keys(state.answers).length;
+      const totalAll = DATA_SOAL.length;
+      const pct = Math.round((totalDone / Math.max(1, totalAll)) * 100);
+
+      let statusLabel = customStatus;
+      if (!statusLabel) {
+        if (state.locked) statusLabel = "🔴 TERKUNCI";
+        else if (state.violations > 0) statusLabel = "🟡 Mengerjakan (Ada Peringatan)";
+        else statusLabel = "🔵 Mengerjakan";
+      }
+
+      const payload = {
+        type: "live",
+        sessionId: state.sessionId,
+        nama: state.studentName,
+        kelas: state.studentClass,
+        status: statusLabel,
+        terjawab: `${totalDone}/${totalAll}`,
+        persenProgres: `${pct}%`,
+        soalAktif: `No. ${state.currentIndex + 1}`,
+        sisaWaktu: formatTime(state.remainingSeconds),
+        jumlahPelanggaran: state.violations,
+        logPelanggaran: state.violationLogs,
+        skorAkhir: "-"
+      };
+
+      try {
+        fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    function startLiveSync(initialLabel = "🔵 Mulai Ujian") {
+      stopLiveSync();
+      sendLiveStatus(initialLabel);
+      const baseMs = Math.max(15, KONFIGURASI_UJIAN.intervalPantauanDetik || 25) * 1000;
+      const jitterMs = Math.floor(Math.random() * 4000);
+      state.liveSyncInterval = setInterval(() => {
+        if (!state.active || state.submitted) {
+          stopLiveSync();
+          return;
+        }
+        sendLiveStatus();
+      }, baseMs + jitterMs);
+    }
+
+    function stopLiveSync() {
+      if (state.liveSyncInterval) {
+        clearInterval(state.liveSyncInterval);
+        state.liveSyncInterval = null;
+      }
     }
 
     async function sendToGoogleSheets(payload) {
@@ -2101,6 +2187,7 @@
           state.violationLogs.push(`[${getCurrentTimeWIB()}] Dibuka kembali oleh Guru Pengawas`);
           updateViolationBadge();
           saveStateToLocal();
+          sendLiveStatus("🔵 Dibuka Guru");
           el.lockModal.classList.add("hidden");
           el.examScreen.classList.remove("blurred-exam");
           state.lastViolationTs = Date.now();
